@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Economy Map</title>
+  <meta name="description" content="A disk-usage-analyzer style sunburst of the world economy: countries, industries and companies.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>World Economy Map</h1>
+      <p class="sub">Where the world's ~<span id="world-total"></span> a year comes from: economies → industries → companies</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="tablist" aria-label="Group by">
+        <button id="mode-country" class="active" role="tab">By country</button>
+        <button id="mode-industry" role="tab">By industry</button>
+      </div>
+      <input id="search" type="search" placeholder="Search a country, industry or company…" list="search-list" autocomplete="off">
+      <datalist id="search-list"></datalist>
+    </div>
+  </header>
+
+  <main>
+    <section id="chart-wrap">
+      <nav id="crumbs" aria-label="Breadcrumb"></nav>
+      <div id="chart"></div>
+      <p class="hint">Click a slice to zoom in · click the centre to go back · hover for details</p>
+    </section>
+
+    <aside id="panel">
+      <div id="focus-card"></div>
+      <h3 id="list-title"></h3>
+      <ol id="child-list"></ol>
+    </aside>
+  </main>
+
+  <footer>
+    <p><strong>How to read it.</strong> Ring 1 is the economy (nominal GDP), ring 2 its industries (share of value added),
+      ring 3 the biggest companies in that industry, sized by annual revenue. Revenue is gross sales, not value added, so
+      big firms can out-size their industry's GDP share — those slices are scaled down to fit and marked with ⚠.
+      “Rest of …” slices are the millions of smaller firms, public bodies and households.</p>
+    <p><strong>Sources (approximate, rounded).</strong> GDP: IMF World Economic Outlook, 2024. Industry shares: World Bank,
+      OECD and national accounts. Company revenue: company reports and the Fortune Global 500, ~FY2024.
+      Figures are for orientation, not investment decisions.</p>
+  </footer>
+
+  <div id="tooltip" role="tooltip"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
