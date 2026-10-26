@@ -127,6 +127,7 @@ svg .center { cursor: pointer; fill: var(--surface); }
 
 footer { padding: 0 24px 24px; color: var(--muted); font-size: 12.5px; max-width: 1100px; }
 footer p { margin: 8px 0; }
+footer a { color: var(--accent); }
 
 @media (max-width: 900px) {
   header, main { padding-left: 16px; padding-right: 16px; }

@@ -6,7 +6,8 @@ A disk-usage-analyzer style sunburst (like Ubuntu's Baobab) for the world econom
 
 - **Ring 1** — economies, sized by nominal GDP (2024, IMF WEO)
 - **Ring 2** — industries, sized by share of value added
-- **Ring 3** — the largest companies in each industry, sized by annual revenue
+- **Ring 3** — sub-industries (e.g. Manufacturing → Autos, Pharma, Electronics…)
+- **Ring 4** — companies in each sub-industry, sized by annual revenue (up to 30 per slice, the rest grouped as "+N more")
 
 Click a slice to zoom in, click the centre to go back, hover for details. Switch between
 **By country** (World → Country → Industry → Company) and **By industry**
@@ -18,10 +19,29 @@ Figures are approximate and rounded, for orientation only. Company revenue is gr
 not value added, so large firms can exceed their industry's GDP share; those slices are scaled
 down to fit and marked ⚠. "Rest of …" slices stand for smaller firms, public bodies and households.
 
-## Editing the data
+## Data
 
-All data lives in [`data.js`](data.js): `COUNTRIES` (GDP, 12 sector shares, top companies per sector)
-and `REGIONS` (remaining economies). No build step — it's a static site using D3 from a CDN.
+- `data.js` — GDP, industry shares, the sub-industry taxonomy, national-accounts sub-industry
+  shares for the five largest economies, and hand-curated companies.
+- `companies.js` — **generated**: ~2,700 companies (name, revenue in USD bn, sub-industry, source, year),
+  merged from the curated list, Wikipedia's "largest companies in …" tables and Wikidata revenue statements,
+  converted to USD, classified into sub-industries and de-duplicated.
+
+Rebuild `companies.js`:
+
+```bash
+python3 scripts/fetch_sources.py /tmp/wem-raw
+python3 scripts/build_companies.py /tmp/wem-raw
+```
+
+Fix a misclassified company in `scripts/sub_overrides.json` (`"Name": "sub"` or `"Name": ["sector", "sub"]`).
+
+### Licences
+
+Company data derived from Wikipedia is available under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/);
+Wikidata is CC0. GDP figures are from the IMF World Economic Outlook.
+
+## Run locally
 
 ```bash
 python3 -m http.server 8000

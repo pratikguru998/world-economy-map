@@ -1,0 +1,15 @@
+SELECT ?co ?coLabel ?country ?rev ?unit ?date
+  (GROUP_CONCAT(DISTINCT ?indLabel; separator="|") AS ?inds)
+  (SAMPLE(?parent) AS ?par)
+WHERE {
+  ?co p:P2139 ?st .
+  ?st psv:P2139 [ wikibase:quantityAmount ?rev ; wikibase:quantityUnit ?unit ] ;
+      pq:P585 ?date .
+  FILTER(?date >= "2020-01-01T00:00:00Z"^^xsd:dateTime)
+  FILTER(?rev > 100000000)
+  ?co wdt:P17 ?country .
+  OPTIONAL { ?co wdt:P452 ?ind . ?ind rdfs:label ?indLabel FILTER(lang(?indLabel)="en") }
+  OPTIONAL { ?co wdt:P749 ?parent }
+  ?co rdfs:label ?coLabel FILTER(lang(?coLabel)="en")
+}
+GROUP BY ?co ?coLabel ?country ?rev ?unit ?date

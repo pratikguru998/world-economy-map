@@ -26,133 +26,106 @@ const SECTORS = [
   { key: "hosp",      name: "Hospitality & Other Services" },
 ];
 
+// Sub-industries within each sector. Companies are classified into these keys
+// (scripts/build_companies.py); the five largest economies also give each a share.
+const SUBSECTORS = {
+  ag:         { crops: "Crops & agribusiness", livestock: "Livestock, meat & dairy", forestry: "Forestry & fishing" },
+  energy:     { oilgas: "Oil & gas", mining: "Mining & coal", power: "Power & utilities" },
+  mfg:        { autos: "Autos & parts", electronics: "Computers, chips & electronics", pharma: "Pharma & medical devices",
+                chemicals: "Chemicals & materials", food: "Food, drink & tobacco", machinery: "Machinery & electrical equipment",
+                metals: "Steel, metals & building materials", refining: "Refining & petrochemicals", aero: "Aerospace & defence",
+                consumer: "Textiles, apparel & consumer goods" },
+  constr:     { infra: "Engineering & infrastructure", building: "Building & homebuilding" },
+  trade:      { retail: "Retail & e-commerce", wholesale: "Wholesale & distribution", trading: "Trading houses & commodity traders",
+                traditional: "Small shops & traditional trade" },
+  transport:  { air: "Airlines & airports", rail: "Railways", shipping: "Shipping & ports", logistics: "Couriers, post & logistics",
+                road: "Road transport & trucking" },
+  tech:       { software: "Software & internet", telecom: "Telecom", media: "Media & entertainment", itservices: "IT services & outsourcing" },
+  fin:        { banking: "Banking", insurance: "Insurance", invest: "Investment & securities", fintech: "Payments & fintech" },
+  realestate: { housing: "Housing (incl. owner-occupied rent)", property: "Developers, REITs & commercial property", leasing: "Rental & leasing" },
+  prof:       { consulting: "Consulting, legal, accounting & R&D", staffing: "Staffing, admin & security", waste: "Waste & environmental services",
+                holding: "Head offices & conglomerates" },
+  public:     { gov: "Government & defence", health: "Health care", education: "Education" },
+  hosp:       { restaurants: "Restaurants & food delivery", hotels: "Hotels, travel & tourism", leisure: "Entertainment, sport & gambling",
+                personal: "Personal & household services" },
+};
+
 // shares are in SECTORS order:
 //          ag  energy mfg constr trade trans tech  fin  realest prof public hosp
 const COUNTRIES = [
-  // The five largest economies also carry `subs`: sector key → list of
-  // [sub-industry, share of that sector's value added, companies]. Sub-industry
-  // shares that don't add up to 1 leave an "Other …" slice. Sector shares for these
-  // five follow the latest national accounts (BEA 2024, NBS China 2024, Destatis 2024,
-  // Cabinet Office Japan 2022, MoSPI India FY2024-25), regrouped into the 12 sectors.
+  // The five largest economies also carry `subShares`: sector key → { sub-industry
+  // key: share of that sector's value added } (keys from SUBSECTORS). Shares that
+  // don't add up to 1 leave an "Other …" slice. Their sector shares follow the latest
+  // national accounts (BEA 2024, NBS China 2024, Destatis 2024, Cabinet Office Japan
+  // 2022, MoSPI India FY2024-25), regrouped into the 12 sectors.
+  // Curated companies may carry a third element: their sub-industry key.
   {
     name: "United States", flag: "🇺🇸", gdp: 29180,
     shares: [0.9, 2.9, 10, 4.5, 12.2, 3.3, 5.5, 7.5, 13, 13, 19.8, 6.5],
+    subShares: {
+      energy: { oilgas: 0.45, mining: 0.07, power: 0.48 },
+      mfg: { pharma: 0.12, chemicals: 0.1, food: 0.16, electronics: 0.13, refining: 0.07, autos: 0.07, machinery: 0.07, aero: 0.06, metals: 0.06, consumer: 0.06 },
+      trade: { retail: 0.52, wholesale: 0.48 },
+      transport: { road: 0.25, logistics: 0.25, air: 0.2, rail: 0.07, shipping: 0.05 },
+      tech: { software: 0.4, telecom: 0.27, media: 0.23, itservices: 0.1 },
+      fin: { banking: 0.45, insurance: 0.3, invest: 0.2, fintech: 0.05 },
+      realestate: { housing: 0.62, property: 0.28, leasing: 0.1 },
+      prof: { consulting: 0.62, staffing: 0.2, waste: 0.05, holding: 0.13 },
+      public: { gov: 0.56, health: 0.38, education: 0.06 },
+      hosp: { restaurants: 0.45, leisure: 0.18, hotels: 0.12, personal: 0.25 },
+    },
     cos: {
       ag: [["Cargill", 160], ["Bunge", 53]],
       constr: [["D.R. Horton", 37], ["Lennar", 35], ["Bechtel", 21], ["PulteGroup", 18]],
-    },
-    subs: {
-      energy: [
-        ["Oil & gas extraction", 0.45, [["ExxonMobil", 340], ["Chevron", 196], ["ConocoPhillips", 56], ["Occidental", 27], ["EOG Resources", 24]]],
-        ["Metal & mineral mining", 0.07, [["Freeport-McMoRan", 25], ["Newmont", 18]]],
-        ["Electric & gas utilities", 0.48, [["Duke Energy", 30], ["Southern Company", 27], ["NextEra Energy", 25], ["Exelon", 23], ["Dominion Energy", 14]]],
-      ],
-      mfg: [
-        ["Chemicals & pharma", 0.22, [["Johnson & Johnson", 89], ["Procter & Gamble", 84], ["Merck", 64], ["Pfizer", 64], ["AbbVie", 56], ["Eli Lilly", 45], ["Dow", 43]]],
-        ["Food, beverage & tobacco", 0.16, [["PepsiCo", 92], ["Archer-Daniels-Midland", 86], ["Tyson Foods", 53], ["Coca-Cola", 47], ["Philip Morris", 38]]],
-        ["Computers, chips & electronics", 0.13, [["Apple", 391], ["Nvidia", 130], ["Dell", 96], ["HP Inc", 54], ["Cisco", 54], ["Intel", 53]]],
-        ["Petroleum refining", 0.07, [["Phillips 66", 145], ["Marathon Petroleum", 140], ["Valero", 130]]],
-        ["Motor vehicles & parts", 0.07, [["General Motors", 187], ["Ford", 185], ["Tesla", 98]]],
-        ["Machinery", 0.07, [["Caterpillar", 65], ["Deere", 51], ["GE Vernova", 35]]],
-        ["Aerospace & defense", 0.06, [["RTX", 81], ["Lockheed Martin", 71], ["Boeing", 66], ["GE Aerospace", 39]]],
-      ],
-      trade: [
-        ["Retail", 0.52, [["Walmart", 648], ["Amazon", 638], ["Costco", 254], ["Home Depot", 159], ["Kroger", 150], ["Walgreens", 147], ["Target", 107]]],
-        ["Wholesale", 0.48, [["McKesson", 309], ["Cencora", 294], ["Cardinal Health", 227], ["Sysco", 78]]],
-      ],
-      transport: [
-        ["Trucking", 0.25, [["J.B. Hunt", 12], ["XPO", 8]]],
-        ["Couriers & warehousing", 0.25, [["UPS", 91], ["FedEx", 88]]],
-        ["Airlines", 0.2, [["Delta Air Lines", 61], ["United Airlines", 57], ["American Airlines", 54]]],
-        ["Railroads", 0.07, [["Union Pacific", 24], ["BNSF", 24], ["CSX", 15]]],
-      ],
-      tech: [
-        ["Software & internet", 0.45, [["Alphabet", 350], ["Microsoft", 245], ["Meta", 165], ["Oracle", 53]]],
-        ["Telecom & cable", 0.3, [["Verizon", 135], ["Comcast", 124], ["AT&T", 122], ["T-Mobile US", 81], ["Charter", 55]]],
-        ["Media & entertainment", 0.25, [["Disney", 91], ["Netflix", 39], ["Warner Bros. Discovery", 39]]],
-      ],
-      fin: [
-        ["Banking", 0.45, [["JPMorgan Chase", 278], ["Bank of America", 192], ["Citigroup", 170], ["Wells Fargo", 125]]],
-        ["Insurance", 0.3, [["UnitedHealth Group", 400], ["Berkshire Hathaway", 371], ["Cigna", 247], ["Elevance Health", 177], ["MetLife", 70]]],
-        ["Investment & payments", 0.25, [["Goldman Sachs", 126], ["Morgan Stanley", 104], ["Visa", 36], ["BlackRock", 20]]],
-      ],
-      realestate: [
-        ["Housing (incl. owner-occupied rent)", 0.62, [["Equity Residential", 3], ["Invitation Homes", 2.6]]],
-        ["Commercial property & REITs", 0.28, [["CBRE", 36], ["American Tower", 10], ["Prologis", 8], ["Simon Property", 6]]],
-        ["Rental & leasing", 0.1, [["United Rentals", 15], ["Enterprise Mobility", 38]]],
-      ],
-      prof: [
-        ["Legal, consulting, IT & R&D", 0.62, [["Accenture", 65], ["IBM", 63], ["Booz Allen", 11]]],
-        ["Admin, staffing & waste", 0.25, [["Waste Management", 22], ["ADP", 19], ["ManpowerGroup", 18], ["Republic Services", 16]]],
-        ["Management of companies", 0.13, []],
-      ],
-      public: [
-        ["Government (federal, state, local)", 0.56, []],
-        ["Health care", 0.38, [["CVS Health", 373], ["Kaiser Permanente", 115], ["HCA Healthcare", 70]]],
-        ["Private education", 0.06, []],
-      ],
-      hosp: [
-        ["Restaurants & food service", 0.45, [["Starbucks", 36], ["McDonald's", 26], ["Chipotle", 11]]],
-        ["Arts, sports & entertainment", 0.18, [["Live Nation", 23]]],
-        ["Hotels", 0.12, [["Marriott", 25], ["Hilton", 11]]],
-      ],
+      energy: [["ExxonMobil", 340, "oilgas"], ["Chevron", 196, "oilgas"], ["ConocoPhillips", 56, "oilgas"], ["Occidental", 27, "oilgas"], ["EOG Resources", 24, "oilgas"], ["Freeport-McMoRan", 25, "mining"], ["Newmont", 18, "mining"], ["Duke Energy", 30, "power"], ["Southern Company", 27, "power"], ["NextEra Energy", 25, "power"], ["Exelon", 23, "power"], ["Dominion Energy", 14, "power"]],
+      mfg: [["Johnson & Johnson", 89, "pharma"], ["Procter & Gamble", 84, "consumer"], ["Merck", 64, "pharma"], ["Pfizer", 64, "pharma"], ["AbbVie", 56, "pharma"], ["Eli Lilly", 45, "pharma"], ["Dow", 43, "chemicals"], ["PepsiCo", 92, "food"], ["Archer-Daniels-Midland", 86, "food"], ["Tyson Foods", 53, "food"], ["Coca-Cola", 47, "food"], ["Philip Morris", 38, "food"], ["Apple", 391, "electronics"], ["Nvidia", 130, "electronics"], ["Dell", 96, "electronics"], ["HP Inc", 54, "electronics"], ["Cisco", 54, "electronics"], ["Intel", 53, "electronics"], ["Phillips 66", 145, "refining"], ["Marathon Petroleum", 140, "refining"], ["Valero", 130, "refining"], ["General Motors", 187, "autos"], ["Ford", 185, "autos"], ["Tesla", 98, "autos"], ["Caterpillar", 65, "machinery"], ["Deere", 51, "machinery"], ["GE Vernova", 35, "machinery"], ["RTX", 81, "aero"], ["Lockheed Martin", 71, "aero"], ["Boeing", 66, "aero"], ["GE Aerospace", 39, "aero"]],
+      trade: [["Walmart", 648, "retail"], ["Amazon", 638, "retail"], ["Costco", 254, "retail"], ["Home Depot", 159, "retail"], ["Kroger", 150, "retail"], ["Walgreens", 147, "retail"], ["Target", 107, "retail"], ["McKesson", 309, "wholesale"], ["Cencora", 294, "wholesale"], ["Cardinal Health", 227, "wholesale"], ["Sysco", 78, "wholesale"]],
+      transport: [["J.B. Hunt", 12, "road"], ["XPO", 8, "road"], ["UPS", 91, "logistics"], ["FedEx", 88, "logistics"], ["Delta Air Lines", 61, "air"], ["United Airlines", 57, "air"], ["American Airlines", 54, "air"], ["Union Pacific", 24, "rail"], ["BNSF", 24, "rail"], ["CSX", 15, "rail"]],
+      tech: [["Alphabet", 350, "software"], ["Accenture", 65, "itservices"], ["IBM", 63, "itservices"], ["Microsoft", 245, "software"], ["Meta", 165, "software"], ["Oracle", 53, "software"], ["Verizon", 135, "telecom"], ["Comcast", 124, "telecom"], ["AT&T", 122, "telecom"], ["T-Mobile US", 81, "telecom"], ["Charter", 55, "telecom"], ["Disney", 91, "media"], ["Netflix", 39, "media"], ["Warner Bros. Discovery", 39, "media"]],
+      fin: [["JPMorgan Chase", 278, "banking"], ["Bank of America", 192, "banking"], ["Citigroup", 170, "banking"], ["Wells Fargo", 125, "banking"], ["UnitedHealth Group", 400, "insurance"], ["Berkshire Hathaway", 371, "insurance"], ["Cigna", 247, "insurance"], ["Elevance Health", 177, "insurance"], ["MetLife", 70, "insurance"], ["Goldman Sachs", 126, "invest"], ["Morgan Stanley", 104, "invest"], ["Visa", 36, "fintech"], ["BlackRock", 20, "invest"]],
+      realestate: [["Equity Residential", 3, "housing"], ["Invitation Homes", 2.6, "housing"], ["CBRE", 36, "property"], ["American Tower", 10, "property"], ["Prologis", 8, "property"], ["Simon Property", 6, "property"], ["United Rentals", 15, "leasing"], ["Enterprise Mobility", 38, "leasing"]],
+      prof: [["Booz Allen", 11, "consulting"], ["Waste Management", 22, "waste"], ["ADP", 19, "staffing"], ["ManpowerGroup", 18, "staffing"], ["Republic Services", 16, "waste"]],
+      public: [["CVS Health", 373, "health"], ["Kaiser Permanente", 115, "health"], ["HCA Healthcare", 70, "health"]],
+      hosp: [["Starbucks", 36, "restaurants"], ["McDonald's", 26, "restaurants"], ["Chipotle", 11, "restaurants"], ["Live Nation", 23, "leisure"], ["Marriott", 25, "hotels"], ["Hilton", 11, "hotels"]],
     },
   },
   {
     name: "China", flag: "🇨🇳", gdp: 18750,
     shares: [6.8, 5.4, 26.2, 6.9, 10.2, 4.5, 4, 7.3, 6.2, 4.5, 13.4, 3],
+    subShares: {
+      energy: { power: 0.4, mining: 0.35, oilgas: 0.25 },
+      mfg: { electronics: 0.18, food: 0.1, consumer: 0.06, machinery: 0.13, chemicals: 0.09, pharma: 0.03, metals: 0.12, autos: 0.09, refining: 0.05 },
+      trade: { retail: 0.5, wholesale: 0.3, trading: 0.2 },
+      transport: { rail: 0.25, logistics: 0.3, shipping: 0.2, air: 0.1, road: 0.15 },
+      tech: { software: 0.55, telecom: 0.4, media: 0.05 },
+      fin: { banking: 0.7, insurance: 0.2, invest: 0.05, fintech: 0.05 },
+      public: { gov: 0.45, health: 0.3, education: 0.25 },
+      hosp: { restaurants: 0.6, hotels: 0.4 },
+    },
     cos: {
       ag: [["COFCO", 100], ["Muyuan Foods", 19], ["New Hope Group", 15]],
       constr: [["China State Construction", 310], ["China Railway Group", 160], ["China Railway Construction", 150], ["China Communications Construction", 105], ["PowerChina", 90]],
       realestate: [["China Vanke", 47], ["Poly Developments", 43], ["Country Garden", 35]],
       prof: [["CITIC Group", 100]],
-    },
-    subs: {
-      energy: [
-        ["Power grid & generation", 0.4, [["State Grid", 545], ["China Southern Power Grid", 120], ["China Huaneng", 60]]],
-        ["Coal & metal mining", 0.35, [["China Energy Investment", 110], ["China Shenhua", 47], ["Zijin Mining", 43]]],
-        ["Oil & gas", 0.25, [["Sinopec", 430], ["PetroChina", 410], ["CNOOC", 58]]],
-      ],
-      mfg: [
-        ["Electronics & telecom equipment", 0.18, [["Huawei", 120], ["Xiaomi", 51], ["Luxshare", 37], ["BOE Technology", 28]]],
-        ["Food, drink & textiles", 0.14, [["WH Group", 26], ["Kweichow Moutai", 24], ["Yili", 16], ["Wuliangye", 12], ["Anta Sports", 10]]],
-        ["Machinery & appliances", 0.13, [["Midea", 56], ["Haier", 55], ["Gree", 26], ["Sany Heavy", 11]]],
-        ["Chemicals & pharma", 0.12, [["Sinochem", 150], ["Wanhua Chemical", 26]]],
-        ["Steel & metals", 0.12, [["China Baowu Steel", 160], ["HBIS", 55], ["Chalco", 33]]],
-        ["Autos, EVs & batteries", 0.09, [["BYD", 107], ["SAIC Motor", 87], ["FAW Group", 80], ["CATL", 50], ["Geely Auto", 33]]],
-      ],
-      trade: [
-        ["Retail & e-commerce", 0.5, [["JD.com", 160], ["Alibaba", 137], ["PDD Holdings", 54]]],
-        ["Wholesale & commodity trading", 0.5, [["China Minmetals", 125], ["Xiamen C&D", 100], ["Xiamen Xiangyu", 75]]],
-      ],
-      transport: [
-        ["Rail", 0.25, [["China State Railway Group", 170]]],
-        ["Shipping, post & logistics", 0.5, [["China Post", 110], ["SF Express", 39], ["COSCO Shipping", 32]]],
-        ["Airlines", 0.1, [["China Southern Airlines", 24], ["Air China", 23], ["China Eastern", 18]]],
-      ],
-      tech: [
-        ["Internet & software", 0.6, [["ByteDance", 155], ["Tencent", 92], ["Baidu", 18], ["NetEase", 15]]],
-        ["Telecom", 0.4, [["China Mobile", 140], ["China Telecom", 72], ["China Unicom", 54]]],
-      ],
-      fin: [
-        ["Banking", 0.7, [["ICBC", 223], ["China Construction Bank", 197], ["Agricultural Bank of China", 190], ["Bank of China", 175]]],
-        ["Insurance", 0.2, [["Ping An Insurance", 162], ["China Life", 115], ["PICC", 85]]],
-        ["Securities & fintech", 0.1, [["Ant Group", 25], ["CITIC Securities", 9]]],
-      ],
-      public: [
-        ["Government", 0.45, []],
-        ["Health care", 0.3, [["Sinopharm", 85], ["Mindray", 5]]],
-        ["Education", 0.25, [["New Oriental", 4.3], ["TAL Education", 2]]],
-      ],
-      hosp: [
-        ["Restaurants & delivery", 0.6, [["Meituan", 46], ["Yum China", 11], ["Haidilao", 6]]],
-        ["Travel & hotels", 0.4, [["Trip.com", 7]]],
-      ],
+      energy: [["State Grid", 545, "power"], ["China Southern Power Grid", 120, "power"], ["China Huaneng", 60, "power"], ["China Energy Investment", 110, "mining"], ["China Shenhua", 47, "mining"], ["Zijin Mining", 43, "mining"], ["Sinopec", 430, "oilgas"], ["PetroChina", 410, "oilgas"], ["CNOOC", 58, "oilgas"]],
+      mfg: [["Huawei", 120, "electronics"], ["Xiaomi", 51, "electronics"], ["Luxshare", 37, "electronics"], ["BOE Technology", 28, "electronics"], ["WH Group", 26, "food"], ["Kweichow Moutai", 24, "food"], ["Yili", 16, "food"], ["Wuliangye", 12, "food"], ["Anta Sports", 10, "consumer"], ["Midea", 56, "machinery"], ["Haier", 55, "machinery"], ["Gree", 26, "machinery"], ["Sany Heavy", 11, "machinery"], ["Sinochem", 150, "chemicals"], ["Wanhua Chemical", 26, "chemicals"], ["China Baowu Steel", 160, "metals"], ["HBIS", 55, "metals"], ["Chalco", 33, "metals"], ["BYD", 107, "autos"], ["SAIC Motor", 87, "autos"], ["FAW Group", 80, "autos"], ["CATL", 50, "autos"], ["Geely Auto", 33, "autos"]],
+      trade: [["JD.com", 160, "retail"], ["Alibaba", 137, "retail"], ["PDD Holdings", 54, "retail"], ["China Minmetals", 125, "trading"], ["Xiamen C&D", 100, "trading"], ["Xiamen Xiangyu", 75, "trading"]],
+      transport: [["China State Railway Group", 170, "rail"], ["China Post", 110, "logistics"], ["SF Express", 39, "logistics"], ["COSCO Shipping", 32, "shipping"], ["China Southern Airlines", 24, "air"], ["Air China", 23, "air"], ["China Eastern", 18, "air"]],
+      tech: [["ByteDance", 155, "software"], ["Tencent", 92, "software"], ["Baidu", 18, "software"], ["NetEase", 15, "software"], ["China Mobile", 140, "telecom"], ["China Telecom", 72, "telecom"], ["China Unicom", 54, "telecom"]],
+      fin: [["ICBC", 223, "banking"], ["China Construction Bank", 197, "banking"], ["Agricultural Bank of China", 190, "banking"], ["Bank of China", 175, "banking"], ["Ping An Insurance", 162, "insurance"], ["China Life", 115, "insurance"], ["PICC", 85, "insurance"], ["Ant Group", 25, "fintech"], ["CITIC Securities", 9, "invest"]],
+      public: [["Sinopharm", 85, "health"], ["Mindray", 5, "health"], ["New Oriental", 4.3, "education"], ["TAL Education", 2, "education"]],
+      hosp: [["Meituan", 46, "restaurants"], ["Yum China", 11, "restaurants"], ["Haidilao", 6, "restaurants"], ["Trip.com", 7, "hotels"]],
     },
   },
   {
     name: "Germany", flag: "🇩🇪", gdp: 4660,
     shares: [0.9, 3, 19.7, 6, 10, 4.2, 5, 3.6, 10, 11.5, 18.6, 5.4],
+    subShares: {
+      mfg: { autos: 0.25, chemicals: 0.1, pharma: 0.06, machinery: 0.22, electronics: 0.05, metals: 0.1, food: 0.06 },
+      trade: { retail: 0.55, wholesale: 0.45 },
+      fin: { insurance: 0.5, banking: 0.45, invest: 0.05 },
+      public: { gov: 0.45, health: 0.38, education: 0.17 },
+    },
     cos: {
       ag: [["BayWa", 22], ["Südzucker", 11]],
       energy: [["E.ON", 87], ["Uniper", 70], ["EnBW", 37], ["RWE", 26]],
@@ -162,34 +135,23 @@ const COUNTRIES = [
       realestate: [["Vonovia", 7], ["LEG Immobilien", 1.3]],
       prof: [["Dekra", 4.5], ["TÜV SÜD", 3.5]],
       hosp: [["TUI", 25], ["Delivery Hero", 13]],
-    },
-    subs: {
-      mfg: [
-        ["Automotive", 0.25, [["Volkswagen", 350], ["Mercedes-Benz", 157], ["BMW", 154], ["Bosch", 98], ["ZF Friedrichshafen", 50], ["Continental", 43]]],
-        ["Chemicals & pharma", 0.16, [["BASF", 70], ["Bayer", 51], ["Boehringer Ingelheim", 28], ["Merck KGaA", 23], ["Henkel", 23]]],
-        ["Machinery & equipment", 0.15, [["Siemens Energy", 37], ["Kion", 12], ["GEA", 6], ["Trumpf", 5]]],
-        ["Electrical & electronics", 0.12, [["Siemens", 82], ["Siemens Healthineers", 24], ["Infineon", 16]]],
-        ["Metals", 0.1, [["Thyssenkrupp", 38], ["Aurubis", 18], ["Salzgitter", 11]]],
-        ["Food & beverage", 0.06, [["Dr. Oetker", 8], ["Tönnies", 8]]],
-      ],
-      trade: [
-        ["Retail", 0.55, [["Schwarz Group (Lidl)", 190], ["Aldi", 140], ["Rewe", 95], ["Edeka", 80], ["Ceconomy", 24], ["Zalando", 11]]],
-        ["Wholesale", 0.45, [["Phoenix Group", 37], ["Metro", 33]]],
-      ],
-      fin: [
-        ["Insurance & reinsurance", 0.5, [["Allianz", 175], ["Munich Re", 85], ["Talanx", 50], ["Hannover Re", 30]]],
-        ["Banking", 0.5, [["Deutsche Bank", 32], ["Commerzbank", 30], ["DZ Bank", 20]]],
-      ],
-      public: [
-        ["Government & defence", 0.45, []],
-        ["Health & social care", 0.38, [["Fresenius", 24], ["Asklepios", 6]]],
-        ["Education", 0.17, []],
-      ],
+      mfg: [["Volkswagen", 350, "autos"], ["Mercedes-Benz", 157, "autos"], ["BMW", 154, "autos"], ["Bosch", 98, "autos"], ["ZF Friedrichshafen", 50, "autos"], ["Continental", 43, "autos"], ["BASF", 70, "chemicals"], ["Bayer", 51, "pharma"], ["Boehringer Ingelheim", 28, "pharma"], ["Merck KGaA", 23, "pharma"], ["Henkel", 23, "chemicals"], ["Siemens Energy", 37, "machinery"], ["Kion", 12, "machinery"], ["GEA", 6, "machinery"], ["Trumpf", 5, "machinery"], ["Siemens", 82, "machinery"], ["Siemens Healthineers", 24, "pharma"], ["Infineon", 16, "electronics"], ["Thyssenkrupp", 38, "metals"], ["Aurubis", 18, "metals"], ["Salzgitter", 11, "metals"], ["Dr. Oetker", 8, "food"], ["Tönnies", 8, "food"]],
+      trade: [["Schwarz Group (Lidl)", 190, "retail"], ["Aldi", 140, "retail"], ["Rewe", 95, "retail"], ["Edeka", 80, "retail"], ["Ceconomy", 24, "retail"], ["Zalando", 11, "retail"], ["Phoenix Group", 37, "wholesale"], ["Metro", 33, "wholesale"]],
+      fin: [["Allianz", 175, "insurance"], ["Munich Re", 85, "insurance"], ["Talanx", 50, "insurance"], ["Hannover Re", 30, "insurance"], ["Deutsche Bank", 32, "banking"], ["Commerzbank", 30, "banking"], ["DZ Bank", 20, "banking"]],
+      public: [["Fresenius", 24, "health"], ["Asklepios", 6, "health"]],
     },
   },
   {
     name: "Japan", flag: "🇯🇵", gdp: 4030,
     shares: [1, 2.3, 20, 5.5, 13.5, 4.8, 5, 4.2, 11.8, 8.5, 17.5, 5.8],
+    subShares: {
+      energy: { oilgas: 0.4, power: 0.6 },
+      mfg: { autos: 0.2, electronics: 0.17, machinery: 0.14, chemicals: 0.08, pharma: 0.06, food: 0.12, metals: 0.1 },
+      trade: { trading: 0.3, wholesale: 0.15, retail: 0.55 },
+      tech: { telecom: 0.45, media: 0.2, software: 0.1, itservices: 0.25 },
+      fin: { banking: 0.5, insurance: 0.4, invest: 0.1 },
+      public: { health: 0.48, gov: 0.35, education: 0.17 },
+    },
     cos: {
       ag: [["Zen-Noh", 40]],
       constr: [["Daiwa House", 35], ["Sekisui House", 27], ["Kajima", 18], ["Obayashi", 16]],
@@ -197,102 +159,42 @@ const COUNTRIES = [
       realestate: [["Mitsui Fudosan", 17], ["Mitsubishi Estate", 11]],
       prof: [["Recruit Holdings", 23], ["Secom", 7]],
       hosp: [["Zensho", 7], ["Oriental Land", 4.5]],
-    },
-    subs: {
-      energy: [
-        ["Oil refining & gas", 0.4, [["ENEOS", 95], ["Idemitsu Kosan", 60], ["Cosmo Energy", 20], ["INPEX", 15]]],
-        ["Electric power", 0.6, [["TEPCO", 45], ["Kansai Electric", 28], ["Chubu Electric", 24]]],
-      ],
-      mfg: [
-        ["Autos & parts", 0.2, [["Toyota", 310], ["Honda", 140], ["Nissan", 85], ["Denso", 47], ["Suzuki", 37], ["Mazda", 33], ["Subaru", 31]]],
-        ["Electronics & chip equipment", 0.17, [["Hitachi", 65], ["Panasonic", 55], ["Mitsubishi Electric", 36], ["Canon", 30], ["Tokyo Electron", 16], ["Keyence", 7]]],
-        ["Machinery", 0.14, [["Mitsubishi Heavy", 33], ["Daikin", 31], ["Komatsu", 28], ["Kubota", 20], ["Fanuc", 5]]],
-        ["Chemicals & pharma", 0.14, [["Takeda", 30], ["Mitsubishi Chemical", 30], ["Shin-Etsu Chemical", 16], ["Astellas", 13]]],
-        ["Food, drink & tobacco", 0.12, [["Japan Tobacco", 21], ["Suntory", 20], ["Asahi Group", 19], ["Kirin", 16], ["Ajinomoto", 10]]],
-        ["Steel & metals", 0.1, [["Nippon Steel", 59], ["JFE Holdings", 35], ["Sumitomo Electric", 30]]],
-      ],
-      trade: [
-        ["Trading houses (sogo shosha)", 0.4, [["Mitsubishi Corp", 130], ["Mitsui & Co", 95], ["Itochu", 95], ["Toyota Tsusho", 68], ["Marubeni", 50], ["Sumitomo Corp", 47]]],
-        ["Retail", 0.6, [["Seven & i", 80], ["Aeon", 65], ["Fast Retailing (Uniqlo)", 21], ["Pan Pacific (Don Quijote)", 14]]],
-      ],
-      tech: [
-        ["Telecom", 0.45, [["NTT", 92], ["SoftBank Corp", 43], ["KDDI", 39]]],
-        ["Media, games & internet", 0.3, [["Sony", 87], ["SoftBank Group", 47], ["Rakuten", 15], ["Nintendo", 11]]],
-        ["Software & IT services", 0.25, [["NTT Data", 30], ["Fujitsu", 26], ["NEC", 23]]],
-      ],
-      fin: [
-        ["Banking", 0.5, [["MUFG", 80], ["SMFG", 60], ["Mizuho", 50], ["Japan Post Bank", 15]]],
-        ["Insurance", 0.4, [["Nippon Life", 70], ["Dai-ichi Life", 65], ["Tokio Marine", 50], ["Japan Post Insurance", 45], ["MS&AD", 40]]],
-        ["Securities", 0.1, [["Nomura", 12], ["Daiwa Securities", 4]]],
-      ],
-      public: [
-        ["Health & elderly care", 0.48, []],
-        ["Government", 0.35, []],
-        ["Education", 0.17, []],
-      ],
+      energy: [["ENEOS", 95, "oilgas"], ["Idemitsu Kosan", 60, "oilgas"], ["Cosmo Energy", 20, "oilgas"], ["INPEX", 15, "oilgas"], ["TEPCO", 45, "power"], ["Kansai Electric", 28, "power"], ["Chubu Electric", 24, "power"]],
+      mfg: [["Toyota", 310, "autos"], ["Honda", 140, "autos"], ["Nissan", 85, "autos"], ["Denso", 47, "autos"], ["Suzuki", 37, "autos"], ["Mazda", 33, "autos"], ["Subaru", 31, "autos"], ["Hitachi", 65, "electronics"], ["Panasonic", 55, "electronics"], ["Mitsubishi Electric", 36, "electronics"], ["Canon", 30, "electronics"], ["Tokyo Electron", 16, "electronics"], ["Keyence", 7, "electronics"], ["Mitsubishi Heavy", 33, "machinery"], ["Daikin", 31, "machinery"], ["Komatsu", 28, "machinery"], ["Kubota", 20, "machinery"], ["Fanuc", 5, "machinery"], ["Takeda", 30, "pharma"], ["Mitsubishi Chemical", 30, "chemicals"], ["Shin-Etsu Chemical", 16, "chemicals"], ["Astellas", 13, "pharma"], ["Japan Tobacco", 21, "food"], ["Suntory", 20, "food"], ["Asahi Group", 19, "food"], ["Kirin", 16, "food"], ["Ajinomoto", 10, "food"], ["Nippon Steel", 59, "metals"], ["JFE Holdings", 35, "metals"], ["Sumitomo Electric", 30, "metals"]],
+      trade: [["Mitsubishi Corp", 130, "trading"], ["Mitsui & Co", 95, "trading"], ["Itochu", 95, "trading"], ["Toyota Tsusho", 68, "trading"], ["Marubeni", 50, "trading"], ["Sumitomo Corp", 47, "trading"], ["Seven & i", 80, "retail"], ["Aeon", 65, "retail"], ["Fast Retailing (Uniqlo)", 21, "retail"], ["Pan Pacific (Don Quijote)", 14, "retail"]],
+      tech: [["NTT", 92, "telecom"], ["SoftBank Corp", 43, "telecom"], ["KDDI", 39, "telecom"], ["Sony", 87, "media"], ["SoftBank Group", 47, "media"], ["Rakuten", 15, "software"], ["Nintendo", 11, "media"], ["NTT Data", 30, "itservices"], ["Fujitsu", 26, "itservices"], ["NEC", 23, "itservices"]],
+      fin: [["MUFG", 80, "banking"], ["SMFG", 60, "banking"], ["Mizuho", 50, "banking"], ["Japan Post Bank", 15, "banking"], ["Nippon Life", 70, "insurance"], ["Dai-ichi Life", 65, "insurance"], ["Tokio Marine", 50, "insurance"], ["Japan Post Insurance", 45, "insurance"], ["MS&AD", 40, "insurance"], ["Nomura", 12, "invest"], ["Daiwa Securities", 4, "invest"]],
+      public: [],
     },
   },
   {
     name: "India", flag: "🇮🇳", gdp: 3910,
     shares: [17.9, 4.3, 13.9, 8.75, 10.5, 4.1, 5.5, 5.5, 7.5, 4.4, 12, 3.9],
+    subShares: {
+      ag: { crops: 0.55, livestock: 0.3, forestry: 0.15 },
+      energy: { power: 0.45, mining: 0.35, oilgas: 0.2 },
+      mfg: { food: 0.15, refining: 0.15, metals: 0.14, autos: 0.12, pharma: 0.08, chemicals: 0.04, machinery: 0.06, electronics: 0.04, consumer: 0.08 },
+      trade: { traditional: 0.6, retail: 0.2, wholesale: 0.2 },
+      transport: { road: 0.55, logistics: 0.05, rail: 0.2, shipping: 0.12, air: 0.08 },
+      tech: { itservices: 0.65, telecom: 0.3, media: 0.05 },
+      fin: { banking: 0.6, insurance: 0.25, fintech: 0.15 },
+      realestate: { housing: 0.75, property: 0.25 },
+      public: { gov: 0.6, health: 0.22, education: 0.18 },
+      hosp: { restaurants: 0.35, personal: 0.65 },
+    },
     cos: {
       constr: [["Larsen & Toubro", 27], ["NCC", 2.5], ["Tata Projects", 2.4], ["Afcons", 1.5]],
       prof: [["Quess Corp", 2.3], ["TeamLease", 1.3]],
-    },
-    subs: {
-      ag: [
-        ["Crop farming (smallholders)", 0.55, []],
-        ["Livestock & dairy", 0.3, [["Amul (GCMMF)", 7.3], ["Mother Dairy", 2]]],
-        ["Forestry & fishing", 0.15, [["Avanti Feeds", 0.6]]],
-      ],
-      energy: [
-        ["Power & utilities", 0.45, [["NTPC", 21], ["Tata Power", 7.3], ["Adani Power", 6.7], ["Power Grid", 5.5]]],
-        ["Coal & metal mining", 0.35, [["Vedanta", 18], ["Coal India", 17], ["NMDC", 2.6]]],
-        ["Oil & gas extraction", 0.2, [["ONGC", 17], ["Oil India", 4]]],
-      ],
-      mfg: [
-        ["Food & FMCG", 0.15, [["ITC", 9], ["Hindustan Unilever", 7.4], ["Adani Wilmar", 6.5], ["Nestlé India", 2.4], ["Britannia", 2]]],
-        ["Refining & petrochemicals", 0.15, [["Indian Oil", 94], ["Reliance (oil-to-chemicals)", 70], ["BPCL", 54], ["HPCL", 52]]],
-        ["Metals & cement", 0.14, [["Tata Steel", 26], ["Hindalco", 26], ["JSW Steel", 21], ["SAIL", 12], ["UltraTech Cement", 8.5]]],
-        ["Autos & two-wheelers", 0.12, [["Tata Motors", 52], ["Mahindra & Mahindra", 18], ["Maruti Suzuki", 17], ["Bajaj Auto", 5.5], ["Hero MotoCorp", 4.5]]],
-        ["Pharma & chemicals", 0.12, [["Sun Pharma", 6], ["UPL", 5.3], ["Asian Paints", 4], ["Dr. Reddy's", 3.4], ["Cipla", 3.1]]],
-        ["Electronics & machinery", 0.1, [["Dixon Technologies", 4.6], ["BHEL", 3], ["Siemens India", 2.5]]],
-        ["Textiles & apparel", 0.08, [["Welspun Living", 1.2], ["Arvind", 1]]],
-      ],
-      trade: [
-        ["Kirana & traditional trade", 0.6, []],
-        ["Organised retail & e-commerce", 0.2, [["Reliance Retail", 37], ["Flipkart", 7], ["Avenue Supermarts (DMart)", 6.5], ["Trent", 2.5]]],
-        ["Wholesale", 0.2, [["Adani Enterprises", 12], ["Redington", 11]]],
-      ],
-      transport: [
-        ["Road transport", 0.6, [["Delhivery", 1], ["TCI", 0.5]]],
-        ["Railways", 0.2, [["Indian Railways", 30]]],
-        ["Ports & logistics", 0.12, [["Adani Ports", 3.4], ["Container Corp", 1], ["Blue Dart", 0.7]]],
-        ["Airlines", 0.08, [["IndiGo", 9], ["Air India", 4.8]]],
-      ],
-      tech: [
-        ["IT services & outsourcing", 0.65, [["TCS", 29], ["Infosys", 19], ["HCLTech", 13], ["Wipro", 10], ["Tech Mahindra", 6.3], ["LTIMindtree", 4.3]]],
-        ["Telecom", 0.3, [["Bharti Airtel", 20], ["Jio Platforms", 14], ["Vodafone Idea", 5]]],
-        ["Media", 0.05, [["Zee Entertainment", 1], ["Sun TV", 0.5]]],
-      ],
-      fin: [
-        ["Banking", 0.6, [["State Bank of India", 60], ["HDFC Bank", 40], ["ICICI Bank", 25], ["Axis Bank", 15], ["Kotak Mahindra", 10]]],
-        ["Insurance", 0.25, [["LIC", 100], ["SBI Life", 10]]],
-        ["NBFCs & fintech", 0.15, [["Bajaj Finance", 7.6], ["Shriram Finance", 4.4], ["Paytm", 0.8]]],
-      ],
-      realestate: [
-        ["Housing (incl. owner-occupied rent)", 0.75, []],
-        ["Developers & commercial", 0.25, [["Macrotech (Lodha)", 1.6], ["DLF", 0.8], ["Godrej Properties", 0.6], ["Embassy REIT", 0.5]]],
-      ],
-      public: [
-        ["Government & defence", 0.6, []],
-        ["Health care", 0.22, [["Apollo Hospitals", 2.6], ["Max Healthcare", 0.8], ["Fortis", 0.8]]],
-        ["Education", 0.18, []],
-      ],
-      hosp: [
-        ["Hotels, restaurants & delivery", 0.35, [["Swiggy", 1.4], ["Zomato", 1.2], ["Indian Hotels (Taj)", 0.8], ["Jubilant FoodWorks", 0.8]]],
-        ["Personal & household services", 0.65, []],
-      ],
+      ag: [["Amul (GCMMF)", 7.3, "livestock"], ["Mother Dairy", 2, "livestock"], ["Avanti Feeds", 0.6, "forestry"]],
+      energy: [["NTPC", 21, "power"], ["Tata Power", 7.3, "power"], ["Adani Power", 6.7, "power"], ["Power Grid", 5.5, "power"], ["Vedanta", 18, "mining"], ["Coal India", 17, "mining"], ["NMDC", 2.6, "mining"], ["ONGC", 17, "oilgas"], ["Oil India", 4, "oilgas"]],
+      mfg: [["ITC", 9, "food"], ["Hindustan Unilever", 7.4, "food"], ["Adani Wilmar", 6.5, "food"], ["Nestlé India", 2.4, "food"], ["Britannia", 2, "food"], ["Indian Oil", 94, "refining"], ["Reliance (oil-to-chemicals)", 70, "refining"], ["BPCL", 54, "refining"], ["HPCL", 52, "refining"], ["Tata Steel", 26, "metals"], ["Hindalco", 26, "metals"], ["JSW Steel", 21, "metals"], ["SAIL", 12, "metals"], ["UltraTech Cement", 8.5, "metals"], ["Tata Motors", 52, "autos"], ["Mahindra & Mahindra", 18, "autos"], ["Maruti Suzuki", 17, "autos"], ["Bajaj Auto", 5.5, "autos"], ["Hero MotoCorp", 4.5, "autos"], ["Sun Pharma", 6, "pharma"], ["UPL", 5.3, "chemicals"], ["Asian Paints", 4, "chemicals"], ["Dr. Reddy's", 3.4, "pharma"], ["Cipla", 3.1, "pharma"], ["Dixon Technologies", 4.6, "electronics"], ["BHEL", 3, "machinery"], ["Siemens India", 2.5, "machinery"], ["Welspun Living", 1.2, "consumer"], ["Arvind", 1, "consumer"]],
+      trade: [["Reliance Retail", 37, "retail"], ["Flipkart", 7, "retail"], ["Avenue Supermarts (DMart)", 6.5, "retail"], ["Trent", 2.5, "retail"], ["Adani Enterprises", 12, "wholesale"], ["Redington", 11, "wholesale"]],
+      transport: [["Delhivery", 1, "logistics"], ["TCI", 0.5, "road"], ["Indian Railways", 30, "rail"], ["Adani Ports", 3.4, "shipping"], ["Container Corp", 1, "logistics"], ["Blue Dart", 0.7, "logistics"], ["IndiGo", 9, "air"], ["Air India", 4.8, "air"]],
+      tech: [["TCS", 29, "itservices"], ["Infosys", 19, "itservices"], ["HCLTech", 13, "itservices"], ["Wipro", 10, "itservices"], ["Tech Mahindra", 6.3, "itservices"], ["LTIMindtree", 4.3, "itservices"], ["Bharti Airtel", 20, "telecom"], ["Jio Platforms", 14, "telecom"], ["Vodafone Idea", 5, "telecom"], ["Zee Entertainment", 1, "media"], ["Sun TV", 0.5, "media"]],
+      fin: [["State Bank of India", 60, "banking"], ["HDFC Bank", 40, "banking"], ["ICICI Bank", 25, "banking"], ["Axis Bank", 15, "banking"], ["Kotak Mahindra", 10, "banking"], ["LIC", 100, "insurance"], ["SBI Life", 10, "insurance"], ["Bajaj Finance", 7.6, "fintech"], ["Shriram Finance", 4.4, "fintech"], ["Paytm", 0.8, "fintech"]],
+      realestate: [["Macrotech (Lodha)", 1.6, "property"], ["DLF", 0.8, "property"], ["Godrej Properties", 0.6, "property"], ["Embassy REIT", 0.5, "property"]],
+      public: [["Apollo Hospitals", 2.6, "health"], ["Max Healthcare", 0.8, "health"], ["Fortis", 0.8, "health"]],
+      hosp: [["Swiggy", 1.4, "restaurants"], ["Zomato", 1.2, "restaurants"], ["Indian Hotels (Taj)", 0.8, "restaurants"], ["Jubilant FoodWorks", 0.8, "restaurants"]],
     },
   },
   {
