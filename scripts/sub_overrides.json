@@ -572,5 +572,33 @@
   "fin",
   "banking"
  ],
- "Hindustan Unilever": "consumer"
+ "Hindustan Unilever": "consumer",
+ "Danaher Corporation": [
+  "mfg",
+  "pharma"
+ ],
+ "Roper Technologies": [
+  "tech",
+  "software"
+ ],
+ "Battelle Memorial Institute": [
+  "prof",
+  "consulting"
+ ],
+ "RTI International": [
+  "prof",
+  "consulting"
+ ],
+ "SUEZ": [
+  "prof",
+  "waste"
+ ],
+ "Veolia": [
+  "prof",
+  "waste"
+ ],
+ "Sabesp": [
+  "energy",
+  "power"
+ ]
 }

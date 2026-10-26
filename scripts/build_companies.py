@@ -83,7 +83,7 @@ EURO = {"Germany", "France", "Italy", "Spain", "Netherlands", "Ireland", "Austri
 
 # (regex on industry text, sector, sub); first match wins. None sector = not a company, drop.
 IND_RULES = [
-    (r"charit|religio|voluntary|philanthrop|non-?profit|association|trade union|relief|animal protection|community development|advocacy|political", None, None),
+    (r"charit|religio|voluntary|philanthrop|non-?profit|association|trade union|relief|animal protection|community development|advocacy|political|conservation|environmental protection|nature reserve|wildlife|think tank", None, None),
     (r"health insurance|insurance|reinsurance|assurance", "fin", "insurance"),
     (r"pharm|biotech|medical (technology|device|equipment)|life science|genomic|vaccine|drug", "mfg", "pharma"),
     (r"hospital|health care|healthcare|clinic|nursing|rehabilitation|outpatient|elderly|\bhealth\b|social services|welfare", "public", "health"),
@@ -129,7 +129,7 @@ IND_RULES = [
     (r"restaurant|food service|fast food|catering|food delivery|coffeehouse", "hosp", "restaurants"),
     (r"hotel|hospitality|touris|travel|cruise|resort", "hosp", "hotels"),
     (r"gambling|casino|amusement|sport|theme park|recreation|leisure|cinema", "hosp", "leisure"),
-    (r"waste|recycling|environment", "prof", "waste"),
+    (r"waste|recycling|sanitation|landfill", "prof", "waste"),
     (r"staffing|employment|human resource|security services|facility|cleaning|fire protection", "prof", "staffing"),
     (r"consult|accounting|audit|legal|law firm|research|engineering|architecture|professional services|marketing|public relations", "prof", "consulting"),
     (r"conglomerate|holding|head offices", "prof", "holding"),
@@ -204,7 +204,7 @@ ALIASES = {
     "vtb bank": "vtb", "byd auto": "byd", "alimentation couche tard": "couche tard", "sberbank russia": "sberbank",
     "toyota motor": "toyota", "honda motor": "honda", "nissan motor": "nissan", "samsung life insurance": "samsung life",
 }
-SKIP_NAMES = {"sk", "tata sons", "samsung", "lg", "hyundai", "groupe psa", "fiat chrysler automobiles", "daimler"}  # group parents whose units are listed separately
+SKIP_NAMES = {"aspen institute", "future life institute", "sk", "tata sons", "samsung", "lg", "hyundai", "groupe psa", "fiat chrysler automobiles", "daimler"}  # group parents whose units are listed separately
 
 
 def norm(name):
