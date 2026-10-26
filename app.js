@@ -27,14 +27,21 @@ function companyNodes(sectorValue, list) {
   return nodes;
 }
 
-function regionNode(region) {
-  const listed = d3.sum(region.countries, (c) => c[1]);
+function countryNode(c) {
+  const shares = sectorShares(c);
   return {
-    name: region.name, type: "region",
-    children: [
-      ...region.countries.map(([name, gdp]) => ({ name, type: "country", value: gdp, noSectors: true })),
-      { name: `Rest of ${region.name.replace(/^Other /, "")}`, type: "rest", value: region.gdp - listed },
-    ],
+    name: c.name, flag: c.flag, type: "country",
+    children: SECTORS.map((s, i) => ({
+      name: s.name, type: "sector", sector: s.key,
+      children: companyNodes(c.gdp * shares[i], c.cos[s.key]),
+    })),
+  };
+}
+
+function regionRest(region) {
+  return {
+    name: `Rest of ${region.name.replace(/^Other /, "")}`, type: "rest", noSectors: true,
+    value: region.gdp - d3.sum(region.countries, (c) => c.gdp),
   };
 }
 
@@ -42,33 +49,25 @@ function buildByCountry() {
   return {
     name: "World", type: "world",
     children: [
-      ...COUNTRIES.map((c) => {
-        const shares = sectorShares(c);
-        return {
-          name: c.name, flag: c.flag, type: "country",
-          children: SECTORS.map((s, i) => ({
-            name: s.name, type: "sector", sector: s.key,
-            children: companyNodes(c.gdp * shares[i], c.cos[s.key]),
-          })),
-        };
-      }),
-      ...REGIONS.map(regionNode),
+      ...COUNTRIES.map(countryNode),
+      ...REGIONS.map((r) => ({ name: r.name, type: "region", children: [...r.countries.map(countryNode), regionRest(r)] })),
     ],
   };
 }
 
 function buildByIndustry() {
+  const all = [...COUNTRIES, ...REGIONS.flatMap((r) => r.countries)];
   return {
     name: "World", type: "world",
     children: [
       ...SECTORS.map((s, i) => ({
         name: s.name, type: "sector", sector: s.key,
-        children: COUNTRIES.map((c) => ({
+        children: all.map((c) => ({
           name: c.name, flag: c.flag, type: "country",
           children: companyNodes(c.gdp * sectorShares(c)[i], c.cos[s.key]),
         })),
       })),
-      { name: "Rest of world (no industry data)", type: "region", children: REGIONS.map(regionNode) },
+      { name: "Rest of world (no industry data)", type: "region", children: REGIONS.map(regionRest) },
     ],
   };
 }

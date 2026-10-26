@@ -349,26 +349,480 @@ const COUNTRIES = [
   },
 ];
 
-// Everything else, grouped by region. No sector breakdown yet — country GDPs only.
+// Everything else, grouped by region. Countries have the same shape as COUNTRIES;
+// the region's GDP not covered by its listed countries becomes a "Rest of …" slice.
+// Revenue for state-owned firms that don't publish full accounts (ADNOC, NIOC,
+// QatarEnergy, Sonatrach, NNPC, …) is a rough estimate.
+//          ag  energy mfg constr trade trans tech  fin  realest prof public hosp
 const REGIONS = [
   {
     name: "Other Asia-Pacific", gdp: 5600,
-    countries: [["Singapore", 550], ["Thailand", 530], ["Philippines", 470], ["Vietnam", 470], ["Bangladesh", 450], ["Malaysia", 420], ["Hong Kong", 410], ["Pakistan", 370], ["New Zealand", 260]],
+    countries: [
+      {
+        name: "Singapore", flag: "🇸🇬", gdp: 550,
+        shares: [0, 3, 18, 3.5, 20, 9, 5.5, 14, 3.5, 10, 9.5, 4],
+        cos: {
+          energy: [["Sembcorp", 7]],
+          mfg: [["Flex", 26]],
+          trade: [["Wilmar International", 67], ["Olam Group", 35]],
+          transport: [["Singapore Airlines", 14], ["PSA International", 6]],
+          tech: [["Sea Ltd", 17], ["Singtel", 11]],
+          fin: [["DBS", 17], ["OCBC", 11], ["UOB", 10]],
+          realestate: [["CapitaLand", 4]],
+          hosp: [["Genting Singapore", 2]],
+        },
+      },
+      {
+        name: "Thailand", flag: "🇹🇭", gdp: 530,
+        shares: [8.5, 4.5, 26, 2.5, 17, 5, 3, 7.5, 7.5, 4.5, 9, 5],
+        cos: {
+          ag: [["Charoen Pokphand Foods", 18]],
+          energy: [["PTT", 90], ["EGAT", 18]],
+          mfg: [["Siam Cement Group", 15], ["Thai Beverage", 9]],
+          trade: [["CP All (7-Eleven TH)", 26], ["Central Retail", 7]],
+          transport: [["Thai Airways", 5], ["Airports of Thailand", 2]],
+          tech: [["True Corp", 6], ["Advanced Info Service", 6]],
+          fin: [["Kasikornbank", 6], ["Bangkok Bank", 6], ["SCB X", 5]],
+          hosp: [["Minor International", 5]],
+        },
+      },
+      {
+        name: "Philippines", flag: "🇵🇭", gdp: 470,
+        shares: [9, 4, 17, 7, 19, 4, 3, 10, 7, 9, 7, 4],
+        cos: {
+          energy: [["Petron", 10], ["Meralco", 8]],
+          mfg: [["San Miguel Corp", 27]],
+          trade: [["SM Investments", 10], ["Puregold", 4]],
+          transport: [["Philippine Airlines", 3], ["Cebu Pacific", 2]],
+          tech: [["PLDT", 4], ["Globe Telecom", 3]],
+          fin: [["BDO Unibank", 4], ["BPI", 3]],
+          hosp: [["Jollibee Foods", 5]],
+        },
+      },
+      {
+        name: "Vietnam", flag: "🇻🇳", gdp: 470,
+        shares: [12, 7, 25, 6, 13, 5, 3, 5, 4, 3, 9, 8],
+        cos: {
+          energy: [["Petrovietnam", 40], ["EVN", 22]],
+          mfg: [["Samsung Electronics Vietnam", 60], ["Hoa Phat Group", 5.5], ["Vinamilk", 2.5]],
+          trade: [["Mobile World", 5.5]],
+          transport: [["Vietnam Airlines", 4]],
+          tech: [["Viettel", 7], ["FPT", 2.5]],
+          fin: [["Vietcombank", 3.5], ["BIDV", 3]],
+          realestate: [["Vingroup", 6.5]],
+        },
+      },
+      {
+        name: "Bangladesh", flag: "🇧🇩", gdp: 450,
+        shares: [11, 2, 22, 8, 15, 7, 2, 3, 6, 2, 10, 12],
+        cos: {
+          energy: [["Petrobangla", 3]],
+          mfg: [["Walton", 1], ["Beximco", 1], ["Square Pharmaceuticals", 0.6]],
+          tech: [["Grameenphone", 1.3]],
+          fin: [["BRAC Bank", 0.5]],
+        },
+      },
+      {
+        name: "Malaysia", flag: "🇲🇾", gdp: 420,
+        shares: [7, 9, 23, 4, 18, 4, 7, 7, 3.5, 3, 11, 3.5],
+        cos: {
+          ag: [["SD Guthrie", 5], ["IOI Corp", 3]],
+          energy: [["Petronas", 75], ["Tenaga Nasional", 13]],
+          trade: [["Sime Darby", 12]],
+          transport: [["MISC", 3], ["Malaysia Airlines", 3]],
+          tech: [["CelcomDigi", 3], ["Maxis", 2]],
+          fin: [["Maybank", 13], ["CIMB", 6], ["Public Bank", 6]],
+          public: [["IHH Healthcare", 5]],
+          hosp: [["Genting", 6]],
+        },
+      },
+      {
+        name: "Hong Kong", flag: "🇭🇰", gdp: 410,
+        shares: [0.1, 1.5, 1, 4, 18, 6, 4, 23, 11, 7, 18, 6.4],
+        cos: {
+          energy: [["CLP Holdings", 11]],
+          trade: [["CK Hutchison", 37], ["Jardine Matheson", 36]],
+          transport: [["Cathay Pacific", 13], ["MTR Corp", 8]],
+          tech: [["Lenovo", 57], ["PCCW", 5]],
+          fin: [["AIA Group", 20], ["Hang Seng Bank", 6], ["HKEX", 3]],
+          realestate: [["Sun Hung Kai Properties", 10], ["Henderson Land", 3]],
+        },
+      },
+      {
+        name: "Pakistan", flag: "🇵🇰", gdp: 370,
+        shares: [23, 3, 12, 2.5, 19, 9, 2.5, 3, 6, 2, 9, 9],
+        cos: {
+          energy: [["Pakistan State Oil", 13], ["OGDCL", 1.5]],
+          mfg: [["Lucky Cement", 1.5], ["Engro", 1.5]],
+          transport: [["PIA", 0.9]],
+          tech: [["Jazz", 1]],
+          fin: [["HBL", 2], ["MCB Bank", 1]],
+        },
+      },
+      {
+        name: "New Zealand", flag: "🇳🇿", gdp: 260,
+        shares: [6, 3, 9, 6.5, 11, 4, 3, 6.5, 13, 9, 18, 11],
+        cos: {
+          ag: [["Fonterra", 15], ["Zespri", 2.4]],
+          energy: [["Contact Energy", 2], ["Mercury NZ", 2]],
+          mfg: [["Fletcher Building", 4.5], ["Fisher & Paykel Healthcare", 1]],
+          trade: [["Foodstuffs", 9], ["Woolworths NZ", 5]],
+          transport: [["Air New Zealand", 4]],
+          tech: [["Spark NZ", 2.2]],
+        },
+      },
+    ],
   },
   {
     name: "Other Europe", gdp: 4300,
-    countries: [["Ireland", 580], ["Austria", 520], ["Norway", 480], ["Denmark", 410], ["Romania", 380], ["Czechia", 340], ["Portugal", 310], ["Finland", 300], ["Greece", 250], ["Hungary", 220]],
+    countries: [
+      {
+        name: "Ireland", flag: "🇮🇪", gdp: 580,
+        shares: [1, 0.7, 40, 2.5, 7, 3, 16, 7, 6, 6, 8, 2.8],
+        cos: {
+          ag: [["Kerry Group", 9]],
+          energy: [["DCC", 20]],
+          mfg: [["CRH", 35], ["Medtronic", 33], ["Eaton", 25], ["Johnson Controls", 23], ["Smurfit Westrock", 21]],
+          trade: [["Musgrave", 6]],
+          transport: [["Ryanair", 14]],
+          fin: [["Bank of Ireland", 6], ["AIB", 5]],
+        },
+      },
+      {
+        name: "Austria", flag: "🇦🇹", gdp: 520,
+        shares: [1.2, 3, 18, 7, 12, 5, 4, 4, 10, 10, 19, 6.8],
+        cos: {
+          energy: [["OMV", 37], ["Verbund", 10]],
+          mfg: [["voestalpine", 18], ["Red Bull", 12], ["Andritz", 9]],
+          constr: [["Strabag", 19]],
+          trade: [["Spar Österreich", 18]],
+          transport: [["Austrian Post", 3.3]],
+          tech: [["A1 Telekom Austria", 6]],
+          fin: [["Vienna Insurance Group", 13], ["Erste Group", 12], ["Raiffeisen Bank Intl", 10]],
+        },
+      },
+      {
+        name: "Norway", flag: "🇳🇴", gdp: 480,
+        shares: [2, 25, 7, 6, 8, 5, 4, 5, 7, 6, 18, 7],
+        cos: {
+          ag: [["Mowi", 6]],
+          energy: [["Equinor", 103], ["Aker BP", 13], ["Statkraft", 9]],
+          mfg: [["Norsk Hydro", 18], ["Yara", 14], ["Orkla", 6]],
+          trade: [["NorgesGruppen", 12]],
+          transport: [["Norwegian Air", 3]],
+          tech: [["Telenor", 7]],
+          fin: [["DNB", 9]],
+        },
+      },
+      {
+        name: "Denmark", flag: "🇩🇰", gdp: 410,
+        shares: [1, 2, 20, 5, 13, 9, 5, 6, 8, 9, 17, 5],
+        cos: {
+          ag: [["Arla Foods", 15], ["Danish Crown", 9]],
+          energy: [["Ørsted", 11]],
+          mfg: [["Novo Nordisk", 42], ["Vestas", 18], ["Carlsberg", 11], ["Lego", 10]],
+          transport: [["Maersk", 56], ["DSV", 24]],
+          fin: [["Danske Bank", 8]],
+          prof: [["ISS", 12]],
+        },
+      },
+      {
+        name: "Romania", flag: "🇷🇴", gdp: 380,
+        shares: [4, 4, 18, 7, 18, 6, 7, 3, 9, 6, 13, 5],
+        cos: {
+          energy: [["OMV Petrom", 7], ["Hidroelectrica", 2]],
+          mfg: [["Dacia", 9]],
+          trade: [["Dedeman", 2]],
+          tech: [["Bitdefender", 0.3]],
+          fin: [["Banca Transilvania", 3]],
+        },
+      },
+      {
+        name: "Czechia", flag: "🇨🇿", gdp: 340,
+        shares: [2, 4, 25, 5, 13, 6, 5, 4, 8, 7, 15, 6],
+        cos: {
+          energy: [["ČEZ", 13]],
+          mfg: [["Škoda Auto", 30]],
+          trade: [["Alza.cz", 2]],
+          transport: [["České dráhy", 2]],
+          fin: [["ČSOB", 3], ["Komerční banka", 2]],
+        },
+      },
+      {
+        name: "Portugal", flag: "🇵🇹", gdp: 310,
+        shares: [2.5, 3, 13, 4.5, 16, 5.5, 5, 5, 12, 9, 17, 7.5],
+        cos: {
+          energy: [["Galp", 25], ["EDP", 17]],
+          mfg: [["The Navigator Company", 2.3]],
+          trade: [["Sonae", 9], ["Pingo Doce (Jerónimo Martins)", 5]],
+          transport: [["TAP Air Portugal", 4.5]],
+          tech: [["NOS", 1.7]],
+          fin: [["Millennium bcp", 4], ["Caixa Geral de Depósitos", 4]],
+        },
+      },
+      {
+        name: "Finland", flag: "🇫🇮", gdp: 300,
+        shares: [2.5, 3, 18, 7, 11, 5, 7, 3, 12, 8, 20, 3.5],
+        cos: {
+          energy: [["Neste", 22], ["Fortum", 7]],
+          mfg: [["Kone", 12], ["UPM", 11], ["Stora Enso", 10], ["Wärtsilä", 7]],
+          trade: [["S Group", 15], ["Kesko", 13]],
+          tech: [["Nokia", 21], ["Elisa", 2.3]],
+          fin: [["Nordea", 13], ["Sampo", 9]],
+        },
+      },
+      {
+        name: "Greece", flag: "🇬🇷", gdp: 250,
+        shares: [4, 3, 10, 3, 18, 8, 3.5, 4, 17, 6, 16, 7.5],
+        cos: {
+          energy: [["Helleniq Energy", 13], ["Motor Oil Hellas", 13], ["PPC", 9]],
+          trade: [["Sklavenitis", 5]],
+          transport: [["Aegean Airlines", 1.7]],
+          tech: [["OTE", 4]],
+          fin: [["National Bank of Greece", 4], ["Piraeus Bank", 4]],
+        },
+      },
+      {
+        name: "Hungary", flag: "🇭🇺", gdp: 220,
+        shares: [4, 3, 20, 5, 13, 6, 5, 4, 7, 9, 17, 7],
+        cos: {
+          energy: [["MOL Group", 26], ["MVM", 9]],
+          mfg: [["Richter Gedeon", 2.2]],
+          transport: [["Wizz Air", 6]],
+          tech: [["Magyar Telekom", 2.6]],
+          fin: [["OTP Bank", 8]],
+        },
+      },
+    ],
   },
   {
     name: "Middle East & Central Asia", gdp: 3200,
-    countries: [["UAE", 540], ["Israel", 540], ["Iran", 430], ["Kazakhstan", 290], ["Iraq", 270], ["Qatar", 220], ["Kuwait", 160]],
+    countries: [
+      {
+        name: "UAE", flag: "🇦🇪", gdp: 540,
+        shares: [0.8, 25, 10, 8, 16, 8, 3, 9, 7, 5, 6, 2.2],
+        cos: {
+          energy: [["ADNOC", 110], ["ENOC", 30], ["TAQA", 14]],
+          mfg: [["Emirates Global Aluminium", 9]],
+          trade: [["Al-Futtaim", 12], ["Majid Al Futtaim", 9], ["Lulu Retail", 8]],
+          transport: [["Emirates Group", 37], ["DP World", 20], ["Etihad", 7]],
+          tech: [["e& (Etisalat)", 15]],
+          fin: [["Emirates NBD", 12], ["First Abu Dhabi Bank", 10]],
+          realestate: [["Emaar", 10], ["Aldar", 6]],
+        },
+      },
+      {
+        name: "Israel", flag: "🇮🇱", gdp: 540,
+        shares: [1.2, 2, 13, 6, 10, 4, 18, 7, 12, 11, 13, 2.8],
+        cos: {
+          energy: [["Delek Group", 4]],
+          mfg: [["Teva", 16], ["Elbit Systems", 7], ["ICL Group", 7]],
+          tech: [["Amdocs", 5], ["NICE", 2.7], ["Check Point", 2.6], ["Bezeq", 2.4], ["Wix", 1.8]],
+          fin: [["Bank Leumi", 8], ["Bank Hapoalim", 8]],
+        },
+      },
+      {
+        name: "Iran", flag: "🇮🇷", gdp: 430,
+        shares: [12, 20, 15, 5, 13, 7, 3, 5, 9, 3, 6, 2],
+        cos: {
+          energy: [["National Iranian Oil Co", 50]],
+          mfg: [["Iran Khodro", 6], ["Mobarakeh Steel", 6]],
+          tech: [["MCI (Hamrah-e Aval)", 2]],
+          fin: [["Bank Melli", 5]],
+        },
+      },
+      {
+        name: "Kazakhstan", flag: "🇰🇿", gdp: 290,
+        shares: [4, 16, 12, 6, 17, 8, 2.5, 3.5, 8, 5, 12, 6],
+        cos: {
+          energy: [["KazMunayGas", 25], ["ERG", 6], ["Kazatomprom", 3]],
+          transport: [["Air Astana", 1.3]],
+          tech: [["Kazakhtelecom", 1]],
+          fin: [["Kaspi.kz", 5], ["Halyk Bank", 4]],
+        },
+      },
+      {
+        name: "Iraq", flag: "🇮🇶", gdp: 270,
+        shares: [4, 45, 2, 6, 10, 8, 2, 1, 7, 2, 11, 2],
+        cos: {
+          energy: [["Basra Oil Company", 50]],
+          tech: [["Zain Iraq", 1.5], ["Asiacell", 1.5]],
+          fin: [["Rafidain Bank", 2]],
+        },
+      },
+      {
+        name: "Qatar", flag: "🇶🇦", gdp: 220,
+        shares: [0.3, 35, 8, 13, 8, 4, 3, 7, 6, 4, 9, 2.7],
+        cos: {
+          energy: [["QatarEnergy", 55]],
+          mfg: [["Industries Qatar", 4]],
+          transport: [["Qatar Airways", 22]],
+          tech: [["Ooredoo", 6]],
+          fin: [["QNB", 13]],
+        },
+      },
+      {
+        name: "Kuwait", flag: "🇰🇼", gdp: 160,
+        shares: [0.5, 45, 6, 2, 6, 3, 3, 9, 6, 3, 15, 1.5],
+        cos: {
+          energy: [["Kuwait Petroleum Corp", 90]],
+          trade: [["Alshaya", 5], ["Agility", 4]],
+          tech: [["Zain", 6]],
+          fin: [["National Bank of Kuwait", 6], ["Kuwait Finance House", 6]],
+        },
+      },
+    ],
   },
   {
     name: "Africa", gdp: 2900,
-    countries: [["South Africa", 400], ["Egypt", 390], ["Algeria", 260], ["Nigeria", 250], ["Morocco", 150], ["Ethiopia", 150], ["Kenya", 120]],
+    countries: [
+      {
+        name: "South Africa", flag: "🇿🇦", gdp: 400,
+        shares: [2.5, 9, 13, 3, 13, 7.5, 3, 12, 9, 9, 18, 1],
+        cos: {
+          energy: [["Eskom", 18], ["Sasol", 15], ["Valterra Platinum", 6]],
+          mfg: [["Aspen Pharmacare", 2.4], ["Tiger Brands", 2]],
+          trade: [["Shoprite", 13], ["Bidcorp", 12], ["Pick n Pay", 6]],
+          transport: [["Transnet", 4.5]],
+          tech: [["MTN Group", 10], ["Vodacom", 8], ["Naspers", 7]],
+          fin: [["Standard Bank", 13], ["FirstRand", 9], ["Old Mutual", 6], ["Sanlam", 6]],
+          public: [["Netcare", 1.5]],
+        },
+      },
+      {
+        name: "Egypt", flag: "🇪🇬", gdp: 390,
+        shares: [11, 9, 16, 6, 14, 5, 3, 4, 10, 3, 12, 7],
+        cos: {
+          energy: [["EGPC", 30]],
+          mfg: [["Elsewedy Electric", 4], ["Oriental Weavers", 0.6]],
+          constr: [["Orascom Construction", 3.3]],
+          transport: [["Suez Canal Authority", 4]],
+          tech: [["Telecom Egypt", 2]],
+          fin: [["National Bank of Egypt", 8], ["CIB", 2.5]],
+        },
+      },
+      {
+        name: "Algeria", flag: "🇩🇿", gdp: 260,
+        shares: [13, 20, 6, 10, 14, 6, 2, 3, 6, 2, 15, 3],
+        cos: {
+          energy: [["Sonatrach", 50]],
+          mfg: [["Cevital", 4]],
+          tech: [["Mobilis", 1]],
+        },
+      },
+      {
+        name: "Nigeria", flag: "🇳🇬", gdp: 250,
+        shares: [24, 7, 9, 4, 16, 1.5, 15, 3, 6, 3, 8, 3.5],
+        cos: {
+          energy: [["NNPC", 25], ["Seplat Energy", 1.1]],
+          mfg: [["Dangote Group", 5], ["BUA Group", 1.2], ["Nestlé Nigeria", 0.6]],
+          trade: [["Jumia", 0.2]],
+          tech: [["MTN Nigeria", 2.8]],
+          fin: [["Access Holdings", 3.5], ["Zenith Bank", 2], ["GTCO", 1.5]],
+        },
+      },
+      {
+        name: "Morocco", flag: "🇲🇦", gdp: 150,
+        shares: [11, 3, 16, 6, 12, 5, 3, 5, 8, 5, 18, 8],
+        cos: {
+          energy: [["OCP Group", 9]],
+          trade: [["Marjane", 1.2]],
+          transport: [["Royal Air Maroc", 2]],
+          tech: [["Maroc Telecom", 4]],
+          fin: [["Attijariwafa Bank", 4], ["Banque Populaire", 3]],
+        },
+      },
+      {
+        name: "Ethiopia", flag: "🇪🇹", gdp: 150,
+        shares: [33, 2, 6, 20, 11, 4, 2, 2, 5, 3, 7, 5],
+        cos: {
+          transport: [["Ethiopian Airlines", 7]],
+          tech: [["Ethio Telecom", 1.5]],
+          fin: [["Commercial Bank of Ethiopia", 2]],
+        },
+      },
+      {
+        name: "Kenya", flag: "🇰🇪", gdp: 120,
+        shares: [21, 2, 7.5, 7, 8, 9, 3, 7, 9, 5, 12, 9.5],
+        cos: {
+          ag: [["KTDA (tea)", 0.8]],
+          energy: [["Kenya Power", 1.2], ["KenGen", 0.5]],
+          mfg: [["East African Breweries", 0.9]],
+          transport: [["Kenya Airways", 1.3]],
+          tech: [["Safaricom", 2.6]],
+          fin: [["Equity Group", 1.3], ["KCB Group", 1.2]],
+        },
+      },
+    ],
   },
   {
     name: "Other Latin America", gdp: 2790,
-    countries: [["Argentina", 630], ["Colombia", 420], ["Chile", 330], ["Peru", 290], ["Ecuador", 125], ["Venezuela", 100]],
+    countries: [
+      {
+        name: "Argentina", flag: "🇦🇷", gdp: 630,
+        shares: [7, 5, 17, 3, 14, 6, 3, 4, 10, 6, 18, 7],
+        cos: {
+          ag: [["Aceitera General Deheza", 6], ["Molinos Río de la Plata", 1.5]],
+          energy: [["YPF", 19], ["Pan American Energy", 7]],
+          mfg: [["Arcor", 4]],
+          trade: [["MercadoLibre", 21]],
+          transport: [["Aerolíneas Argentinas", 2]],
+          tech: [["Telecom Argentina", 4]],
+          fin: [["Banco Nación", 8], ["Grupo Galicia", 6]],
+        },
+      },
+      {
+        name: "Colombia", flag: "🇨🇴", gdp: 420,
+        shares: [8, 8, 11, 6, 17, 4, 3, 5, 9, 8, 15, 6],
+        cos: {
+          energy: [["Ecopetrol", 32], ["Grupo EPM", 7]],
+          mfg: [["Grupo Nutresa", 4], ["Cementos Argos", 3]],
+          trade: [["Grupo Éxito", 5]],
+          transport: [["Avianca", 5]],
+          tech: [["Claro Colombia", 4]],
+          fin: [["Bancolombia", 9], ["Grupo Aval", 8]],
+        },
+      },
+      {
+        name: "Chile", flag: "🇨🇱", gdp: 330,
+        shares: [4, 14, 10, 6, 11, 6, 3, 7, 9, 10, 15, 5],
+        cos: {
+          ag: [["Empresas CMPC", 7.5]],
+          energy: [["Codelco", 16], ["Antofagasta", 6.6], ["SQM", 4.5], ["Enel Chile", 4]],
+          trade: [["Empresas Copec", 29], ["Cencosud", 17], ["Falabella", 13]],
+          transport: [["LATAM Airlines", 13]],
+          tech: [["Entel", 2.5]],
+          fin: [["Banco de Chile", 4], ["Santander Chile", 3.5]],
+        },
+      },
+      {
+        name: "Peru", flag: "🇵🇪", gdp: 290,
+        shares: [7, 13, 13, 6, 11, 5, 3, 5, 6, 5, 15, 11],
+        cos: {
+          energy: [["Southern Copper", 11.4], ["Petroperú", 5], ["Buenaventura", 1.1]],
+          constr: [["AENZA", 1]],
+          trade: [["InRetail", 5]],
+          fin: [["Credicorp", 6], ["Interbank", 2]],
+        },
+      },
+      {
+        name: "Ecuador", flag: "🇪🇨", gdp: 125,
+        shares: [9, 10, 13, 9, 11, 7, 2, 4, 6, 5, 15, 9],
+        cos: {
+          energy: [["Petroecuador", 10]],
+          trade: [["Corporación Favorita", 2.6]],
+          fin: [["Banco Pichincha", 1.5]],
+        },
+      },
+      {
+        name: "Venezuela", flag: "🇻🇪", gdp: 100,
+        shares: [5, 30, 10, 3, 12, 5, 3, 3, 8, 3, 12, 6],
+        cos: {
+          energy: [["PDVSA", 18]],
+          mfg: [["Empresas Polar", 3]],
+          tech: [["CANTV", 0.5]],
+        },
+      },
+    ],
   },
 ];
