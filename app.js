@@ -19,7 +19,7 @@ function sectorShares(country) {
 
 // Slices shown per group; smaller companies are folded into one "+N more" slice.
 const MAX_SHOWN = 30;
-const SOURCE = { c: "Curated (company reports, ~FY2024)", w: "Wikipedia company list", d: "Wikidata" };
+const SOURCE = { s: "screener.in (trailing 12-month sales)", c: "Curated (company reports, ~FY2024)", w: "Wikipedia company list", d: "Wikidata" };
 
 // list items: [name, revenue USD bn, sub-industry key, source, year] (see companies.js)
 function companyNodes(sectorValue, list, restName = "Rest of sector") {

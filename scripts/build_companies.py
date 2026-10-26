@@ -28,7 +28,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = sys.argv[1]
-MAX_PER_SECTOR = 60
+MAX_PER_SECTOR = 100
 MIN_REVENUE = 0.2  # USD bn
 
 # --- base data from data.js -------------------------------------------------
@@ -210,6 +210,7 @@ def norm(name):
     n = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode().lower()
     n = re.sub(r"\(.*?\)", " ", n)
     n = re.sub(r"[^a-z0-9 ]+", " ", n)
+    n = re.sub(r"\b(?:[a-z] ){1,}[a-z]\b", lambda m: m.group(0).replace(" ", ""), n)  # "i o c l" -> "iocl"
     n = " ".join(w for w in n.split() if w not in STOP and len(w) > 1)
     return ALIASES.get(n, n)
 
@@ -221,10 +222,10 @@ def keys_for(name):
             keys.add(norm(inner))
     words = [w for w in re.split(r"[^A-Za-z0-9]+", re.sub(r"\(.*?\)", " ", name)) if w and w.lower() not in ("and", "of", "the")]
     if len(words) >= 3:
-        keys.add("acr:" + "".join(w[0] for w in words).lower())
+        keys.add("acrN:" + "".join(w[0] for w in words).lower())
     if len(words) == 1 and words[0].isupper() and 2 <= len(words[0]) <= 6:
-        keys.add("acr:" + words[0].lower())
-    keys.update({k.replace(" ", "") for k in list(keys) if not k.startswith("acr:")})
+        keys.add("acr1:" + words[0].lower())
+    keys.update({k.replace(" ", "") for k in list(keys) if not k.startswith(("acr1:", "acrN:"))})
     return {k for k in keys if k}
 
 
@@ -234,11 +235,19 @@ class Registry:
         self.exact = {}
         self.by_first = defaultdict(list)
 
-    def find(self, keys, key):
+    def find(self, keys, key, rec):
+        # rows from the same hand-checked source (screener, curated) are distinct companies by construction
+        both_screener = lambda r: r["src"] == rec["src"] and r["src"] in ("s", "c")
         for k in keys:
-            if k in self.exact:
+            if k.startswith(("acr1:", "acrN:")):  # abbreviation <-> full name, same sector only
+                other = self.exact.get(("acr1:" if k.startswith("acrN:") else "acrN:") + k.split(":", 1)[1])
+                if other and not both_screener(other) and other["sector"] == rec["sector"]:
+                    return other
+            elif k in self.exact and not both_screener(self.exact[k]):
                 return self.exact[k]
         for r in self.by_first[key.split()[0]]:
+            if r["country"] != rec["country"] or both_screener(r):
+                continue  # "Bosch India" is not "Bosch"
             a, b = r["key"], key
             short, long_ = (a, b) if len(a) < len(b) else (b, a)
             if long_.startswith(short + " ") and (len(short.split()) >= 2 or len(short) >= 4):
@@ -246,11 +255,11 @@ class Registry:
         return None
 
     def add(self, rec):
-        rec["key"] = norm(rec["name"])
+        rec["key"] = norm(rec["name"]) or re.sub(r"\W+", " ", rec["name"].lower()).strip()
         if not rec["key"] or rec["key"] in SKIP_NAMES or re.search(r"\(part of", rec["name"], re.I):
             return None
         keys = keys_for(rec["name"])
-        hit = self.find(keys, rec["key"])
+        hit = self.find(keys, rec["key"], rec)
         if hit:
             # fill in classification from lower-priority sources
             if hit.get("sector") in (None, "drop") and rec.get("sector") not in (None, "drop"):
@@ -266,6 +275,31 @@ class Registry:
 
 
 reg = Registry()
+
+# 0. screener.in: India's largest listed companies by trailing-12-month sales (scripts/fetch_screener.js).
+# Takes priority over the curated list for India: these are reported figures, not estimates.
+SCREENER_MAP = json.load(open(os.path.join(ROOT, "scripts", "screener_industries.json")))
+SCREENER_NAMES = json.load(open(os.path.join(ROOT, "scripts", "screener_names.json")))  # display names for abbreviations
+screener_path = os.path.join(RAW, "screener_india.json")
+SCREENER_ADJ = json.load(open(os.path.join(ROOT, "scripts", "screener_adjustments.json")))
+if os.path.exists(screener_path):
+    screener_rows = json.load(open(screener_path))
+    by_name = {r["name"]: r["sales"] for r in screener_rows}
+    for r in screener_rows:
+        adj = SCREENER_ADJ.get(r["name"], {})
+        if adj.get("drop"):
+            continue
+        r["sales"] -= sum(m if isinstance(m, (int, float)) else by_name[m] for m in adj.get("minus", []))
+    for r in screener_rows:
+        if SCREENER_ADJ.get(r["name"], {}).get("drop") or r["sales"] <= 0:
+            continue
+        key = r.get("Industry") or r.get("Broad Industry") or ""
+        sector, sub = SCREENER_MAP.get(key, [None, None])
+        if not sector:
+            print("WARN unmapped screener industry:", key, r["name"])
+            continue
+        reg.add({"name": SCREENER_NAMES.get(r["name"], r["name"]), "rev": round(r["sales"] * 1e7 * FX["INR"] / 1e9, 2),
+                 "country": "India", "sector": sector, "sub": sub, "src": "s", "year": r.get("year")})
 
 # 1. curated
 for c in ALL_COUNTRIES:

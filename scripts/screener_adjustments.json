@@ -1,0 +1,22 @@
+{
+ "_comment": "screener.in sales are consolidated: remove listed subsidiaries that appear separately (and Reliance's Jio + Retail), and drop pure holding companies. 'minus' takes other screener names or rupee-crore amounts.",
+ "Reliance Industries": {"minus": ["Jio Platforms", 330000], "note": "330000 = Reliance Retail, approx."},
+ "O N G C": {"minus": ["H P C L", "M R P L"]},
+ "I O C L": {"minus": ["C P C L"]},
+ "SBI": {"minus": ["SBI Life Insuran", "SBI Cards"]},
+ "HDFC Bank": {"minus": ["HDFC Life Insur.", "HDB FINANC SER"]},
+ "ICICI Bank": {"minus": ["ICICI Life Insurance", "ICICI Lombard"]},
+ "Bajaj Finserv": {"minus": ["Bajaj Finance"]},
+ "Bajaj Finance": {"minus": ["Bajaj Housing"]},
+ "Grasim Inds": {"minus": ["UltraTech Cem.", "Aditya Birla Cap"]},
+ "M & M": {"minus": ["M & M Fin. Serv."]},
+ "Larsen & Toubro": {"minus": ["LTM", "L&T Technology", "L&T Finance Ltd"]},
+ "Power Fin.Corpn.": {"minus": ["REC Ltd"]},
+ "Coal India": {"minus": ["Bharat Coking"]},
+ "Bharti Airtel": {"minus": ["Bharti Hexacom", "Indus Towers"]},
+ "Vedanta": {"minus": ["Hindustan Zinc"]},
+ "Chola Financial": {"minus": ["Cholaman.Inv.&Fn"]},
+ "Godrej Industrie": {"minus": ["Godrej Agrovet"]},
+ "TVS Holdings": {"drop": true},
+ "Kama Holdings": {"drop": true}
+}

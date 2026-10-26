@@ -23,8 +23,9 @@ down to fit and marked ⚠. "Rest of …" slices stand for smaller firms, public
 
 - `data.js` — GDP, industry shares, the sub-industry taxonomy, national-accounts sub-industry
   shares for the five largest economies, and hand-curated companies.
-- `companies.js` — **generated**: ~2,700 companies (name, revenue in USD bn, sub-industry, source, year),
-  merged from the curated list, Wikipedia's "largest companies in …" tables and Wikidata revenue statements,
+- `companies.js` — **generated**: ~3,200 companies (name, revenue in USD bn, sub-industry, source, year),
+  merged from screener.in (India's ~300 largest listed companies by sales, with NSE industries),
+  the curated list, Wikipedia's "largest companies in …" tables and Wikidata revenue statements,
   converted to USD, classified into sub-industries and de-duplicated.
 
 Rebuild `companies.js`:
@@ -33,6 +34,11 @@ Rebuild `companies.js`:
 python3 scripts/fetch_sources.py /tmp/wem-raw
 python3 scripts/build_companies.py /tmp/wem-raw
 ```
+
+India comes from screener.in: run `scripts/fetch_screener.js` in the browser console while logged in to
+screener.in and save the copied JSON as `/tmp/wem-raw/screener_india.json` before building. Consolidated sales
+are adjusted for listed subsidiaries in `scripts/screener_adjustments.json`; industries map to sub-industries via
+`scripts/screener_industries.json`.
 
 Fix a misclassified company in `scripts/sub_overrides.json` (`"Name": "sub"` or `"Name": ["sector", "sub"]`).
 
