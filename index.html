@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>World Economy Map</title>
   <meta name="description" content="A disk-usage-analyzer style sunburst of the world economy: countries, industries and companies.">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <header>
@@ -39,7 +39,8 @@
 
   <footer>
     <p><strong>How to read it.</strong> Ring 1 is the economy (nominal GDP), ring 2 its industries (share of value added),
-      ring 3 the biggest companies in that industry, sized by annual revenue. Revenue is gross sales, not value added, so
+      ring 3 the biggest companies in that industry, sized by annual revenue. For the five largest economies (US, China,
+      Germany, Japan, India) industries split further into sub-industries before the companies. Revenue is gross sales, not value added, so
       big firms can out-size their industry's GDP share — those slices are scaled down to fit and marked with ⚠.
       “Rest of …” slices are the millions of smaller firms, public bodies and households.</p>
     <p><strong>Sources (approximate, rounded).</strong> GDP: IMF World Economic Outlook, 2024. Industry shares: World Bank,
@@ -50,7 +51,7 @@
   <div id="tooltip" role="tooltip"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script src="data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

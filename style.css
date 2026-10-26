@@ -118,6 +118,7 @@ main {
 
 svg .arc { stroke: var(--arc-stroke); stroke-width: 1; cursor: pointer; }
 svg .arc:hover { filter: brightness(1.15); }
+svg .arc[fill-opacity="0"] { stroke: none; }
 svg .lbl { font-size: 10.5px; fill: #0b0d12; pointer-events: none; user-select: none; }
 svg .center-name { font-size: 15px; font-weight: 700; fill: var(--text); }
 svg .center-val { font-size: 22px; font-weight: 700; fill: var(--text); }

@@ -17,24 +17,34 @@ function sectorShares(country) {
   return country.shares.map((s) => s / total);
 }
 
-function companyNodes(sectorValue, list) {
+function companyNodes(sectorValue, list, restName = "Rest of sector") {
   if (!list || !list.length) return [{ name: "Whole sector (no single firm dominates)", type: "rest", value: sectorValue }];
   const revenue = d3.sum(list, (c) => c[1]);
   const cap = sectorValue * MAX_COMPANY_SHARE;
   const scale = revenue > cap ? cap / revenue : 1;
   const nodes = list.map(([name, rev]) => ({ name, type: "company", value: rev * scale, revenue: rev, scaled: scale < 1 }));
-  nodes.push({ name: "Rest of sector", type: "rest", value: sectorValue - revenue * scale });
+  nodes.push({ name: restName, type: "rest", value: sectorValue - revenue * scale });
+  return nodes;
+}
+
+// Companies directly, or sub-industries → companies when the country has `subs` for this sector.
+function sectorChildren(c, i) {
+  const s = SECTORS[i];
+  const value = c.gdp * sectorShares(c)[i];
+  const subs = c.subs && c.subs[s.key];
+  if (!subs) return companyNodes(value, c.cos[s.key]);
+  const nodes = subs.map(([name, share, list]) => (list.length
+    ? { name, type: "sub", children: companyNodes(value * share, list, "Rest of sub-industry") }
+    : { name, type: "sub", value: value * share }));
+  const rest = 1 - d3.sum(subs, (x) => x[1]);
+  if (rest > 0.005) nodes.push({ name: `Other ${s.name.toLowerCase()}`, type: "rest", value: value * rest });
   return nodes;
 }
 
 function countryNode(c) {
-  const shares = sectorShares(c);
   return {
     name: c.name, flag: c.flag, type: "country",
-    children: SECTORS.map((s, i) => ({
-      name: s.name, type: "sector", sector: s.key,
-      children: companyNodes(c.gdp * shares[i], c.cos[s.key]),
-    })),
+    children: SECTORS.map((s, i) => ({ name: s.name, type: "sector", sector: s.key, children: sectorChildren(c, i) })),
   };
 }
 
@@ -62,10 +72,7 @@ function buildByIndustry() {
     children: [
       ...SECTORS.map((s, i) => ({
         name: s.name, type: "sector", sector: s.key,
-        children: all.map((c) => ({
-          name: c.name, flag: c.flag, type: "country",
-          children: companyNodes(c.gdp * sectorShares(c)[i], c.cos[s.key]),
-        })),
+        children: all.map((c) => ({ name: c.name, flag: c.flag, type: "country", children: sectorChildren(c, i) })),
       })),
       { name: "Rest of world (no industry data)", type: "region", children: REGIONS.map(regionRest) },
     ],
@@ -228,7 +235,7 @@ function describe(d) {
     lines.push(`Revenue ${fmt(d.data.revenue)}`);
     lines.push(`${d.parent.data.name} in ${countryOf(d)}`);
   } else {
-    const what = t === "sector" ? "value added" : t === "rest" ? "estimated" : "GDP";
+    const what = t === "sector" || t === "sub" ? "value added" : t === "rest" ? "estimated" : "GDP";
     lines.push(`${fmt(d.value)} ${what}`);
   }
   if (d.parent) lines.push(`${pct(d.value / d.parent.value)} of ${d.parent.data.name}`);
@@ -274,14 +281,15 @@ function renderCrumbs() {
   });
 }
 
-const KICKER = { world: "Global economy", country: "Economy", region: "Region", sector: "Industry", company: "Company", rest: "Remainder" };
+const KICKER = { world: "Global economy", country: "Economy", region: "Region", sector: "Industry", sub: "Sub-industry", company: "Company", rest: "Remainder" };
+const LIST_TITLE = { country: "Economies", region: "Regions", sector: "Industries", sub: "Sub-industries", company: "Companies" };
 
 function renderPanel(d) {
   const card = document.getElementById("focus-card");
   const name = d.data.flag ? `${d.data.flag} ${d.data.name}` : d.data.name;
   const t = d.data.type;
   const headline = t === "company" ? fmt(d.data.revenue) : fmt(d.value);
-  const headLabel = t === "company" ? "annual revenue" : t === "sector" ? "value added / year" : t === "rest" ? "per year (estimate)" : "GDP / year";
+  const headLabel = t === "company" ? "annual revenue" : t === "sector" || t === "sub" ? "value added / year" : t === "rest" ? "per year (estimate)" : "GDP / year";
 
   const stats = [];
   if (d.parent) stats.push(["Share of " + d.parent.data.name, pct(d.value / d.parent.value)]);
@@ -290,13 +298,14 @@ function renderPanel(d) {
     const top = d.children.slice().sort((a, b) => b.value - a.value)[0];
     stats.push(["Largest industry", top.data.name]);
   }
-  if (t === "sector" && mode === "country") stats.push(["Country", countryOf(d)]);
+  if ((t === "sector" && mode === "country") || t === "sub") stats.push(["Country", countryOf(d)]);
   if (t === "company") stats.push(["Revenue vs sector", `${(d.data.revenue / d.parent.value).toFixed(2)}×`]);
   if (d.children) stats.push(["Slices", d.children.length]);
 
   let notes = "";
   if (t === "company" && d.data.scaled) notes += `<p class="note warn">⚠ Revenue counts every sale, including inputs bought from other firms, so it can exceed the industry's GDP contribution. This slice is scaled down to fit the ring.</p>`;
   if (d.data.noSectors) notes += `<p class="note">Industry and company detail for this economy isn't mapped yet.</p>`;
+  if (t === "sub" && !d.children) notes += `<p class="note">No single company stands out here: it's public bodies, households or millions of small players.</p>`;
   if (t === "rest") notes += `<p class="note">Everything not listed separately: smaller firms, the self-employed, public bodies and household production.</p>`;
 
   card.innerHTML = `
@@ -310,7 +319,8 @@ function renderPanel(d) {
   const list = document.getElementById("child-list");
   list.innerHTML = "";
   if (!d.children) { title.textContent = ""; return; }
-  title.textContent = { world: mode === "country" ? "Economies" : "Industries", country: mode === "country" ? "Industries" : "Companies", region: "Economies", sector: mode === "country" ? "Companies" : "Economies" }[t] || "Breakdown";
+  const firstReal = d.children.find((c) => c.data.type !== "rest");
+  title.textContent = (firstReal && LIST_TITLE[firstReal.data.type]) || "Breakdown";
 
   const max = d.children[0].value;
   d.children.forEach((c) => {
@@ -336,7 +346,7 @@ function fillSearch() {
   searchIndex = new Map();
   root.descendants().slice(1).forEach((d) => {
     if (d.data.type === "rest") return;
-    const key = d.data.type === "company" || (d.data.type === "sector" && mode === "country") || (d.data.type === "country" && mode === "industry")
+    const key = d.data.type === "company" || d.data.type === "sub" || (d.data.type === "sector" && mode === "country") || (d.data.type === "country" && mode === "industry")
       ? `${d.data.name} — ${d.parent.data.name}`
       : d.data.name;
     if (!searchIndex.has(key)) searchIndex.set(key, d);
