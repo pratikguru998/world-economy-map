@@ -8,6 +8,9 @@ A disk-usage-analyzer style sunburst (like Ubuntu's Baobab) for the world econom
 - **Ring 2** — industries, sized by share of value added
 - **Ring 3** — sub-industries (e.g. Manufacturing → Autos, Pharma, Electronics…)
 - **Ring 4** — companies in each sub-industry, sized by annual revenue (up to 30 per slice, the rest grouped as "+N more")
+- **India's agriculture and food** go one level further: crops → rice, wheat, vegetables, pulses…; livestock → milk,
+  meat, eggs; fishing; forestry; and food manufacturing → dairy, edible oils, sugar, beverages… each with a one-line
+  fact and the companies behind it (MoSPI value of output, 2023-24).
 
 Click a slice to zoom in, click the centre to go back, hover for details. Switch between
 **By country** (World → Country → Industry → Company) and **By industry**

@@ -29,7 +29,8 @@ const SECTORS = [
 // Sub-industries within each sector. Companies are classified into these keys
 // (scripts/build_companies.py); the five largest economies also give each a share.
 const SUBSECTORS = {
-  ag:         { crops: "Crops & agribusiness", livestock: "Livestock, meat & dairy", forestry: "Forestry & fishing" },
+  ag:         { crops: "Crops & agribusiness", livestock: "Livestock, meat & dairy", fishing: "Fishing & aquaculture",
+                forestry: "Forestry & logging" },
   energy:     { oilgas: "Oil & gas", mining: "Mining & coal", power: "Power & utilities" },
   mfg:        { autos: "Autos & parts", electronics: "Computers, chips & electronics", pharma: "Pharma & medical devices",
                 chemicals: "Chemicals & materials", food: "Food, drink & tobacco", machinery: "Machinery & electrical equipment",
@@ -171,7 +172,7 @@ const COUNTRIES = [
     name: "India", flag: "🇮🇳", gdp: 3910,
     shares: [17.9, 4.3, 13.9, 8.75, 10.5, 4.1, 5.5, 5.5, 7.5, 4.4, 12, 3.9],
     subShares: {
-      ag: { crops: 0.55, livestock: 0.3, forestry: 0.15 },
+      ag: { crops: 0.541, livestock: 0.312, fishing: 0.07, forestry: 0.077 },
       energy: { power: 0.45, mining: 0.35, oilgas: 0.2 },
       mfg: { food: 0.15, refining: 0.15, metals: 0.14, autos: 0.12, pharma: 0.08, chemicals: 0.04, machinery: 0.06, electronics: 0.04, consumer: 0.08 },
       trade: { traditional: 0.6, retail: 0.2, wholesale: 0.2 },
@@ -185,9 +186,17 @@ const COUNTRIES = [
     cos: {
       constr: [["Larsen & Toubro", 27], ["NCC", 2.5], ["Tata Projects", 2.4], ["Afcons", 1.5]],
       prof: [["Quess Corp", 2.3], ["TeamLease", 1.3]],
-      ag: [["Amul (GCMMF)", 7.3, "livestock"], ["Mother Dairy", 2, "livestock"], ["Avanti Feeds", 0.6, "forestry"]],
+      ag: [["Amul (GCMMF)", 7.3, "livestock"], ["Karnataka Milk Federation (Nandini)", 2.5, "livestock"], ["Mother Dairy", 2, "livestock"],
+           ["Aavin (Tamil Nadu dairy co-op)", 0.85, "livestock"], ["Suguna Foods", 1.4, "livestock"], ["Venky's", 0.4, "livestock"],
+           ["Avanti Feeds", 0.65, "fishing"], ["Apex Frozen Foods", 0.1, "fishing"], ["Sahyadri Farms", 0.15, "crops"],
+           ["McLeod Russel", 0.12, "crops"], ["Jay Shree Tea", 0.1, "crops"], ["Harrisons Malayalam", 0.06, "crops"]],
       energy: [["NTPC", 21, "power"], ["Tata Power", 7.3, "power"], ["Adani Power", 6.7, "power"], ["Power Grid", 5.5, "power"], ["Vedanta", 18, "mining"], ["Coal India", 17, "mining"], ["NMDC", 2.6, "mining"], ["ONGC", 17, "oilgas"], ["Oil India", 4, "oilgas"]],
-      mfg: [["ITC", 9, "food"], ["Hindustan Unilever", 7.4, "food"], ["Adani Wilmar", 6.5, "food"], ["Nestlé India", 2.4, "food"], ["Britannia", 2, "food"], ["Indian Oil", 94, "refining"], ["Reliance (oil-to-chemicals)", 70, "refining"], ["BPCL", 54, "refining"], ["HPCL", 52, "refining"], ["Tata Steel", 26, "metals"], ["Hindalco", 26, "metals"], ["JSW Steel", 21, "metals"], ["SAIL", 12, "metals"], ["UltraTech Cement", 8.5, "metals"], ["Tata Motors", 52, "autos"], ["Mahindra & Mahindra", 18, "autos"], ["Maruti Suzuki", 17, "autos"], ["Bajaj Auto", 5.5, "autos"], ["Hero MotoCorp", 4.5, "autos"], ["Sun Pharma", 6, "pharma"], ["UPL", 5.3, "chemicals"], ["Asian Paints", 4, "chemicals"], ["Dr. Reddy's", 3.4, "pharma"], ["Cipla", 3.1, "pharma"], ["Dixon Technologies", 4.6, "electronics"], ["BHEL", 3, "machinery"], ["Siemens India", 2.5, "machinery"], ["Welspun Living", 1.2, "consumer"], ["Arvind", 1, "consumer"]],
+      mfg: [["Parle Products", 1.9, "food"], ["Hindustan Coca-Cola Beverages", 1.7, "food"], ["Haldiram's", 1.55, "food"],
+            ["Mondelez India", 1.45, "food"], ["Allana Group", 1.4, "food"], ["PepsiCo India", 0.97, "food"], ["Godfrey Phillips", 0.7, "food"],
+            ["Triveni Engineering", 0.7, "food"], ["Balrampur Chini", 0.66, "food"], ["KRBL (India Gate)", 0.66, "food"],
+            ["Radico Khaitan", 0.58, "food"], ["Heritage Foods", 0.46, "food"], ["Dodla Dairy", 0.42, "food"], ["Allied Blenders", 0.42, "food"],
+            ["Parag Milk Foods", 0.41, "food"], ["CCL Products", 0.37, "food"], ["Bikaji Foods", 0.31, "food"],
+            ["ITC", 9, "food"], ["Hindustan Unilever", 7.4, "consumer"], ["Adani Wilmar", 6.5, "food"], ["Nestlé India", 2.4, "food"], ["Britannia", 2, "food"], ["Indian Oil", 94, "refining"], ["Reliance (oil-to-chemicals)", 70, "refining"], ["BPCL", 54, "refining"], ["HPCL", 52, "refining"], ["Tata Steel", 26, "metals"], ["Hindalco", 26, "metals"], ["JSW Steel", 21, "metals"], ["SAIL", 12, "metals"], ["UltraTech Cement", 8.5, "metals"], ["Tata Motors", 52, "autos"], ["Mahindra & Mahindra", 18, "autos"], ["Maruti Suzuki", 17, "autos"], ["Bajaj Auto", 5.5, "autos"], ["Hero MotoCorp", 4.5, "autos"], ["Sun Pharma", 6, "pharma"], ["UPL", 5.3, "chemicals"], ["Asian Paints", 4, "chemicals"], ["Dr. Reddy's", 3.4, "pharma"], ["Cipla", 3.1, "pharma"], ["Dixon Technologies", 4.6, "electronics"], ["BHEL", 3, "machinery"], ["Siemens India", 2.5, "machinery"], ["Welspun Living", 1.2, "consumer"], ["Arvind", 1, "consumer"]],
       trade: [["Reliance Retail", 37, "retail"], ["Flipkart", 7, "retail"], ["Avenue Supermarts (DMart)", 6.5, "retail"], ["Trent", 2.5, "retail"], ["Adani Enterprises", 12, "wholesale"], ["Redington", 11, "wholesale"]],
       transport: [["Delhivery", 1, "logistics"], ["TCI", 0.5, "road"], ["Indian Railways", 30, "rail"], ["Adani Ports", 3.4, "shipping"], ["Container Corp", 1, "logistics"], ["Blue Dart", 0.7, "logistics"], ["IndiGo", 9, "air"], ["Air India", 4.8, "air"]],
       tech: [["TCS", 29, "itservices"], ["Infosys", 19, "itservices"], ["HCLTech", 13, "itservices"], ["Wipro", 10, "itservices"], ["Tech Mahindra", 6.3, "itservices"], ["LTIMindtree", 4.3, "itservices"], ["Bharti Airtel", 20, "telecom"], ["Jio Platforms", 14, "telecom"], ["Vodafone Idea", 5, "telecom"], ["Zee Entertainment", 1, "media"], ["Sun TV", 0.5, "media"]],
@@ -195,6 +204,60 @@ const COUNTRIES = [
       realestate: [["Macrotech (Lodha)", 1.6, "property"], ["DLF", 0.8, "property"], ["Godrej Properties", 0.6, "property"], ["Embassy REIT", 0.5, "property"]],
       public: [["Apollo Hospitals", 2.6, "health"], ["Max Healthcare", 0.8, "health"], ["Fortis", 0.8, "health"]],
       hosp: [["Swiggy", 1.4, "restaurants"], ["Zomato", 1.2, "restaurants"], ["Indian Hotels (Taj)", 0.8, "restaurants"], ["Jubilant FoodWorks", 0.8, "restaurants"]],
+    },
+    // A further level for agriculture and food: sector -> sub-industry -> [segment, share of the
+    // sub-industry, one-line context, companies by name ("*" = everything not listed elsewhere)].
+    // Farm shares: MoSPI value of output from agriculture & allied sectors, 2023-24 (crop groups,
+    // milk/meat split); finer splits (rice vs wheat, fruit vs vegetables, inland vs marine fish,
+    // forestry, food-processing segments) are rounded estimates.
+    segments: {
+      ag: {
+        crops: [
+          ["Vegetables", 0.154, "World's second-largest vegetable producer; potato, onion and tomato lead.", []],
+          ["Rice (paddy)", 0.147, "About 137 million tonnes in 2023-24; India is the world's largest rice exporter.", []],
+          ["Straw, fodder & by-products", 0.129, "Crop residues and fodder that feed India's cattle and buffalo.", []],
+          ["Fruits", 0.103, "Banana and mango are the biggest; India grows more bananas than any other country.", ["Sahyadri Farms"]],
+          ["Wheat", 0.088, "About 113 million tonnes in 2023-24, mostly from Punjab, Haryana, Uttar Pradesh and Madhya Pradesh.", []],
+          ["Oilseeds", 0.087, "Soybean, groundnut and mustard; India still imports more than half of its edible oil.", []],
+          ["Sugarcane", 0.07, "Feeds the sugar mills and, increasingly, ethanol for petrol blending.", []],
+          ["Spices", 0.059, "World's largest producer, consumer and exporter of spices.", []],
+          ["Pulses", 0.055, "World's largest producer and consumer of pulses (dal).", []],
+          ["Cotton & other fibres", 0.04, "One of the two largest cotton growers; jute in the east.", []],
+          ["Maize, millets & other cereals", 0.033, "Maize for poultry feed and ethanol; millets such as bajra, jowar and ragi.", []],
+          ["Tea, coffee, rubber & tobacco", 0.025, "Second-largest tea producer after China; coffee and rubber in the south.", "*"],
+          ["Flowers", 0.01, "Floriculture for temples, weddings and export.", []],
+        ],
+        livestock: [
+          ["Milk", 0.66, "World's largest milk producer: about 239 million tonnes in 2023-24 from some 80 million dairy households, many in farmer-owned co-operatives.", "*"],
+          ["Meat", 0.24, "Mostly poultry; India is also a leading exporter of buffalo meat.", ["Suguna Foods", "Venky's"]],
+          ["Dung, wool & other", 0.06, "Dung for fuel and manure, wool, and growth in herd size.", []],
+          ["Eggs", 0.04, "About 143 billion eggs in 2023-24, second only to China.", []],
+        ],
+        fishing: [
+          ["Inland fishing & aquaculture", 0.68, "Ponds, rivers and shrimp farms now supply about three-quarters of India's fish.", "*"],
+          ["Marine fishing", 0.32, "Capture fishing along an 11,000 km coastline.", []],
+        ],
+        forestry: [
+          ["Industrial wood", 0.45, "Timber and pulpwood, much of it now from farm trees rather than forests.", []],
+          ["Fuelwood", 0.4, "Still a major cooking fuel in rural homes.", []],
+          ["Bamboo, tendu & other forest produce", 0.15, "Non-timber produce collected largely by tribal communities.", []],
+        ],
+      },
+      mfg: {
+        food: [
+          ["Biscuits, snacks & packaged foods", 0.14, "Parle-G, Britannia, Haldiram's and Maggi: India's packaged-food brands.", ["Nestle India", "Nestlé India", "Britannia", "Bombay Burmah (Wadia)", "Parle Products", "Haldiram's", "Mondelez India", "Bikaji Foods"]],
+          ["Dairy products", 0.14, "Private processors turning farm milk into packaged milk, curd, ghee and ice cream.", ["Hatsun Agro", "Heritage Foods", "Dodla Dairy", "Parag Milk Foods"]],
+          ["Rice, flour & grain milling", 0.14, "Rice mills and flour mills, including basmati exporters.", ["LT Foods (Daawat)", "KRBL (India Gate)"]],
+          ["Edible oils", 0.13, "Refining soybean, palm, sunflower and mustard oil, much of it imported.", ["AWL Agri Business (Adani Wilmar)", "Patanjali Foods", "Gokul Agro", "Marico"]],
+          ["Beverages & alcohol", 0.11, "Soft drinks, bottled water, beer and spirits; India is the world's largest whisky market.", ["Varun Beverages", "United Spirits", "United Breweries", "Hindustan Coca-Cola Beverages", "PepsiCo India", "Radico Khaitan", "Allied Blenders"]],
+          ["Sugar & ethanol", 0.1, "Mills crushing sugarcane into sugar, molasses and fuel ethanol.", ["EID Parry", "Shree Renuka Sugars", "Balrampur Chini", "Triveni Engineering"]],
+          ["Cigarettes & tobacco", 0.08, "Dominated by ITC, which also runs packaged foods, agri-trading and paper.", ["ITC", "Godfrey Phillips"]],
+          ["Tea, coffee & spices", 0.05, "Blending and packing tea, coffee and spice mixes.", ["Tata Consumer", "CCL Products"]],
+          ["Meat & seafood processing", 0.04, "Buffalo-meat and frozen-shrimp exporters.", ["Allana Group"]],
+          ["Animal feed", 0.04, "Feed for India's poultry, dairy and fish farms.", ["Godrej Agrovet"]],
+          ["Other food products", 0.03, "Other food processors, from spices to frozen foods.", "*"],
+        ],
+      },
     },
   },
   {

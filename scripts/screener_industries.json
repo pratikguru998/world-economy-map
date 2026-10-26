@@ -1,107 +1,419 @@
 {
-  "_comment": "screener.in (NSE) Industry -> [sector, sub-industry] used by build_companies.py",
-  "Aerospace & Defense": ["mfg", "aero"],
-  "Edible Oil": ["mfg", "food"],
-  "Other Agricultural Products": ["ag", "crops"],
-  "Sugar": ["mfg", "food"],
-  "Tea & Coffee": ["mfg", "food"],
-  "Commercial Vehicles": ["mfg", "autos"],
-  "Tractors": ["mfg", "machinery"],
-  "Auto Components & Equipments": ["mfg", "autos"],
-  "Tyres & Rubber Products": ["mfg", "autos"],
-  "2/3 Wheelers": ["mfg", "autos"],
-  "Passenger Cars & Utility Vehicles": ["mfg", "autos"],
-  "Other Bank": ["fin", "banking"],
-  "Private Sector Bank": ["fin", "banking"],
-  "Public Sector Bank": ["fin", "banking"],
-  "Breweries & Distilleries": ["mfg", "food"],
-  "Other Beverages": ["mfg", "food"],
-  "Exchange and Data Platform": ["fin", "invest"],
-  "Stockbroking & Allied": ["fin", "invest"],
-  "Cement & Cement Products": ["mfg", "metals"],
-  "Carbon Black": ["mfg", "chemicals"],
-  "Commodity Chemicals": ["mfg", "chemicals"],
-  "Dyes And Pigments": ["mfg", "chemicals"],
-  "Explosives": ["mfg", "chemicals"],
-  "Petrochemicals": ["mfg", "refining"],
-  "Specialty Chemicals": ["mfg", "chemicals"],
-  "Business Process Outsourcing (BPO)/ Knowledge Process Outsourcing (KPO)": ["tech", "itservices"],
-  "Diversified Commercial Services": ["prof", "staffing"],
-  "Trading & Distributors": ["trade", "wholesale"],
-  "Civil Construction": ["constr", "infra"],
-  "Coal": ["energy", "mining"],
-  "Consumer Electronics": ["mfg", "electronics"],
-  "Gems, Jewellery And Watches": ["mfg", "consumer"],
-  "Household Appliances": ["mfg", "machinery"],
-  "Paints": ["mfg", "chemicals"],
-  "Diversified": ["prof", "holding"],
-  "Diversified FMCG": ["mfg", "food"],
-  "Diversified Metals": ["energy", "mining"],
-  "Heavy Electrical Equipment": ["mfg", "machinery"],
-  "Other Electrical Equipment": ["mfg", "machinery"],
-  "TV Broadcasting & Software Production": ["tech", "media"],
-  "Iron & Steel": ["mfg", "metals"],
-  "Fertilizers": ["mfg", "chemicals"],
-  "Pesticides & Agrochemicals": ["mfg", "chemicals"],
-  "Financial Institution": ["fin", "invest"],
-  "Holding Company": ["fin", "invest"],
-  "Housing Finance Company": ["fin", "banking"],
-  "Investment Company": ["fin", "invest"],
-  "Non Banking Financial Company (NBFC)": ["fin", "fintech"],
-  "Financial Technology (Fintech)": ["fin", "fintech"],
-  "Animal Feed": ["ag", "livestock"],
-  "Dairy Products": ["ag", "livestock"],
-  "Other Food Products": ["mfg", "food"],
-  "Packaged Foods": ["mfg", "food"],
-  "Gas Transmission/Marketing": ["energy", "oilgas"],
-  "LPG/CNG/PNG/LNG Supplier": ["energy", "oilgas"],
-  "Trading - Gas": ["energy", "oilgas"],
-  "Hospital": ["public", "health"],
-  "Computers Hardware & Equipments": ["mfg", "electronics"],
-  "IT Enabled Services": ["tech", "itservices"],
-  "Computers - Software & Consulting": ["tech", "itservices"],
-  "Software Products": ["tech", "software"],
-  "Industrial Products": ["mfg", "machinery"],
-  "Ship Building & Allied Services": ["mfg", "aero"],
-  "Aluminium, Copper & Zinc Products": ["mfg", "metals"],
-  "Cables - Electricals": ["mfg", "machinery"],
-  "Compressors, Pumps & Diesel Engines": ["mfg", "machinery"],
-  "Iron & Steel Products": ["mfg", "metals"],
-  "Packaging": ["mfg", "chemicals"],
-  "Plastic Products - Industrial": ["mfg", "chemicals"],
-  "General Insurance": ["fin", "insurance"],
-  "Life Insurance": ["fin", "insurance"],
-  "Hotels & Resorts": ["hosp", "hotels"],
-  "Restaurants": ["hosp", "restaurants"],
-  "Tour, Travel Related Services": ["hosp", "hotels"],
-  "Trading - Metals": ["trade", "trading"],
-  "Trading - Minerals": ["trade", "trading"],
-  "Industrial Minerals": ["energy", "mining"],
-  "Aluminium": ["mfg", "metals"],
-  "Precious Metals": ["mfg", "metals"],
-  "Zinc": ["energy", "mining"],
-  "Oil Exploration & Production": ["energy", "oilgas"],
-  "Other Consumer Services": ["hosp", "personal"],
-  "Personal Care": ["mfg", "consumer"],
-  "Refineries & Marketing": ["mfg", "refining"],
-  "Pharmaceuticals": ["mfg", "pharma"],
-  "Integrated Power Utilities": ["energy", "power"],
-  "Power - Transmission": ["energy", "power"],
-  "Power Distribution": ["energy", "power"],
-  "Power Generation": ["energy", "power"],
-  "Power Trading": ["energy", "power"],
-  "Residential, Commercial Projects": ["realestate", "property"],
-  "Diversified Retail": ["trade", "retail"],
-  "E-Retail/ E-Commerce": ["trade", "retail"],
-  "Speciality Retail": ["trade", "retail"],
-  "Telecom - Cellular & Fixed line services": ["tech", "telecom"],
-  "Telecom - Infrastructure": ["tech", "telecom"],
-  "Garments & Apparels": ["mfg", "consumer"],
-  "Other Textile Products": ["mfg", "consumer"],
-  "Trading - Textile Products": ["trade", "wholesale"],
-  "Airport & Airport services": ["transport", "air"],
-  "Port & Port services": ["transport", "shipping"],
-  "Airline": ["transport", "air"],
-  "Logistics Solution Provider": ["transport", "logistics"],
-  "Jio Platforms": ["tech", "telecom"]
+ "_comment": "screener.in (NSE) Industry -> [sector, sub-industry] used by build_companies.py",
+ "Aerospace & Defense": [
+  "mfg",
+  "aero"
+ ],
+ "Edible Oil": [
+  "mfg",
+  "food"
+ ],
+ "Other Agricultural Products": [
+  "mfg",
+  "food"
+ ],
+ "Sugar": [
+  "mfg",
+  "food"
+ ],
+ "Tea & Coffee": [
+  "mfg",
+  "food"
+ ],
+ "Commercial Vehicles": [
+  "mfg",
+  "autos"
+ ],
+ "Tractors": [
+  "mfg",
+  "machinery"
+ ],
+ "Auto Components & Equipments": [
+  "mfg",
+  "autos"
+ ],
+ "Tyres & Rubber Products": [
+  "mfg",
+  "autos"
+ ],
+ "2/3 Wheelers": [
+  "mfg",
+  "autos"
+ ],
+ "Passenger Cars & Utility Vehicles": [
+  "mfg",
+  "autos"
+ ],
+ "Other Bank": [
+  "fin",
+  "banking"
+ ],
+ "Private Sector Bank": [
+  "fin",
+  "banking"
+ ],
+ "Public Sector Bank": [
+  "fin",
+  "banking"
+ ],
+ "Breweries & Distilleries": [
+  "mfg",
+  "food"
+ ],
+ "Other Beverages": [
+  "mfg",
+  "food"
+ ],
+ "Exchange and Data Platform": [
+  "fin",
+  "invest"
+ ],
+ "Stockbroking & Allied": [
+  "fin",
+  "invest"
+ ],
+ "Cement & Cement Products": [
+  "mfg",
+  "metals"
+ ],
+ "Carbon Black": [
+  "mfg",
+  "chemicals"
+ ],
+ "Commodity Chemicals": [
+  "mfg",
+  "chemicals"
+ ],
+ "Dyes And Pigments": [
+  "mfg",
+  "chemicals"
+ ],
+ "Explosives": [
+  "mfg",
+  "chemicals"
+ ],
+ "Petrochemicals": [
+  "mfg",
+  "refining"
+ ],
+ "Specialty Chemicals": [
+  "mfg",
+  "chemicals"
+ ],
+ "Business Process Outsourcing (BPO)/ Knowledge Process Outsourcing (KPO)": [
+  "tech",
+  "itservices"
+ ],
+ "Diversified Commercial Services": [
+  "prof",
+  "staffing"
+ ],
+ "Trading & Distributors": [
+  "trade",
+  "wholesale"
+ ],
+ "Civil Construction": [
+  "constr",
+  "infra"
+ ],
+ "Coal": [
+  "energy",
+  "mining"
+ ],
+ "Consumer Electronics": [
+  "mfg",
+  "electronics"
+ ],
+ "Gems, Jewellery And Watches": [
+  "mfg",
+  "consumer"
+ ],
+ "Household Appliances": [
+  "mfg",
+  "machinery"
+ ],
+ "Paints": [
+  "mfg",
+  "chemicals"
+ ],
+ "Diversified": [
+  "prof",
+  "holding"
+ ],
+ "Diversified FMCG": [
+  "mfg",
+  "food"
+ ],
+ "Diversified Metals": [
+  "energy",
+  "mining"
+ ],
+ "Heavy Electrical Equipment": [
+  "mfg",
+  "machinery"
+ ],
+ "Other Electrical Equipment": [
+  "mfg",
+  "machinery"
+ ],
+ "TV Broadcasting & Software Production": [
+  "tech",
+  "media"
+ ],
+ "Iron & Steel": [
+  "mfg",
+  "metals"
+ ],
+ "Fertilizers": [
+  "mfg",
+  "chemicals"
+ ],
+ "Pesticides & Agrochemicals": [
+  "mfg",
+  "chemicals"
+ ],
+ "Financial Institution": [
+  "fin",
+  "invest"
+ ],
+ "Holding Company": [
+  "fin",
+  "invest"
+ ],
+ "Housing Finance Company": [
+  "fin",
+  "banking"
+ ],
+ "Investment Company": [
+  "fin",
+  "invest"
+ ],
+ "Non Banking Financial Company (NBFC)": [
+  "fin",
+  "fintech"
+ ],
+ "Financial Technology (Fintech)": [
+  "fin",
+  "fintech"
+ ],
+ "Animal Feed": [
+  "mfg",
+  "food"
+ ],
+ "Dairy Products": [
+  "mfg",
+  "food"
+ ],
+ "Other Food Products": [
+  "mfg",
+  "food"
+ ],
+ "Packaged Foods": [
+  "mfg",
+  "food"
+ ],
+ "Gas Transmission/Marketing": [
+  "energy",
+  "oilgas"
+ ],
+ "LPG/CNG/PNG/LNG Supplier": [
+  "energy",
+  "oilgas"
+ ],
+ "Trading - Gas": [
+  "energy",
+  "oilgas"
+ ],
+ "Hospital": [
+  "public",
+  "health"
+ ],
+ "Computers Hardware & Equipments": [
+  "mfg",
+  "electronics"
+ ],
+ "IT Enabled Services": [
+  "tech",
+  "itservices"
+ ],
+ "Computers - Software & Consulting": [
+  "tech",
+  "itservices"
+ ],
+ "Software Products": [
+  "tech",
+  "software"
+ ],
+ "Industrial Products": [
+  "mfg",
+  "machinery"
+ ],
+ "Ship Building & Allied Services": [
+  "mfg",
+  "aero"
+ ],
+ "Aluminium, Copper & Zinc Products": [
+  "mfg",
+  "metals"
+ ],
+ "Cables - Electricals": [
+  "mfg",
+  "machinery"
+ ],
+ "Compressors, Pumps & Diesel Engines": [
+  "mfg",
+  "machinery"
+ ],
+ "Iron & Steel Products": [
+  "mfg",
+  "metals"
+ ],
+ "Packaging": [
+  "mfg",
+  "chemicals"
+ ],
+ "Plastic Products - Industrial": [
+  "mfg",
+  "chemicals"
+ ],
+ "General Insurance": [
+  "fin",
+  "insurance"
+ ],
+ "Life Insurance": [
+  "fin",
+  "insurance"
+ ],
+ "Hotels & Resorts": [
+  "hosp",
+  "hotels"
+ ],
+ "Restaurants": [
+  "hosp",
+  "restaurants"
+ ],
+ "Tour, Travel Related Services": [
+  "hosp",
+  "hotels"
+ ],
+ "Trading - Metals": [
+  "trade",
+  "trading"
+ ],
+ "Trading - Minerals": [
+  "trade",
+  "trading"
+ ],
+ "Industrial Minerals": [
+  "energy",
+  "mining"
+ ],
+ "Aluminium": [
+  "mfg",
+  "metals"
+ ],
+ "Precious Metals": [
+  "mfg",
+  "metals"
+ ],
+ "Zinc": [
+  "energy",
+  "mining"
+ ],
+ "Oil Exploration & Production": [
+  "energy",
+  "oilgas"
+ ],
+ "Other Consumer Services": [
+  "hosp",
+  "personal"
+ ],
+ "Personal Care": [
+  "mfg",
+  "consumer"
+ ],
+ "Refineries & Marketing": [
+  "mfg",
+  "refining"
+ ],
+ "Pharmaceuticals": [
+  "mfg",
+  "pharma"
+ ],
+ "Integrated Power Utilities": [
+  "energy",
+  "power"
+ ],
+ "Power - Transmission": [
+  "energy",
+  "power"
+ ],
+ "Power Distribution": [
+  "energy",
+  "power"
+ ],
+ "Power Generation": [
+  "energy",
+  "power"
+ ],
+ "Power Trading": [
+  "energy",
+  "power"
+ ],
+ "Residential, Commercial Projects": [
+  "realestate",
+  "property"
+ ],
+ "Diversified Retail": [
+  "trade",
+  "retail"
+ ],
+ "E-Retail/ E-Commerce": [
+  "trade",
+  "retail"
+ ],
+ "Speciality Retail": [
+  "trade",
+  "retail"
+ ],
+ "Telecom - Cellular & Fixed line services": [
+  "tech",
+  "telecom"
+ ],
+ "Telecom - Infrastructure": [
+  "tech",
+  "telecom"
+ ],
+ "Garments & Apparels": [
+  "mfg",
+  "consumer"
+ ],
+ "Other Textile Products": [
+  "mfg",
+  "consumer"
+ ],
+ "Trading - Textile Products": [
+  "trade",
+  "wholesale"
+ ],
+ "Airport & Airport services": [
+  "transport",
+  "air"
+ ],
+ "Port & Port services": [
+  "transport",
+  "shipping"
+ ],
+ "Airline": [
+  "transport",
+  "air"
+ ],
+ "Logistics Solution Provider": [
+  "transport",
+  "logistics"
+ ],
+ "Jio Platforms": [
+  "tech",
+  "telecom"
+ ]
 }

@@ -18,7 +18,7 @@
  "Fonterra": "livestock",
  "Zespri": "crops",
  "Kerry Group": "crops",
- "Mowi": "forestry",
+ "Mowi": "fishing",
  "Arla Foods": "livestock",
  "Danish Crown": "livestock",
  "KTDA (tea)": "crops",
@@ -571,5 +571,6 @@
  "Capital One": [
   "fin",
   "banking"
- ]
+ ],
+ "Hindustan Unilever": "consumer"
 }

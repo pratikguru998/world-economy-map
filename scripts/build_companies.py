@@ -28,7 +28,7 @@ import pandas as pd
 warnings.filterwarnings("ignore")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RAW = sys.argv[1]
-MAX_PER_SECTOR = 100
+MAX_PER_SUB = 60
 MIN_REVENUE = 0.2  # USD bn
 
 # --- base data from data.js -------------------------------------------------
@@ -116,7 +116,8 @@ IND_RULES = [
     (r"food|beverage|brew|drink|dairy|meat|bakery|coffee|tobacco|spirits|distill|wine|confection|sugar|snack", "mfg", "food"),
     (r"agricultur|farming|\bcrops?\b|grain|seeds|plantation|palm oil|agribusiness", "ag", "crops"),
     (r"livestock|poultry|cattle", "ag", "livestock"),
-    (r"forestry|logging|sawmill|wood|fishing|aquaculture|seafood", "ag", "forestry"),
+    (r"fishing|aquaculture|seafood|fishery", "ag", "fishing"),
+    (r"forestry|logging|sawmill|wood", "ag", "forestry"),
     (r"machinery|mechanical engineering|industrial manufacturing|automation|engine|machine|equipment|robot|elevator|hvac|tools|industry$", "mfg", "machinery"),
     (r"textile|clothing|apparel|fashion|footwear|cosmetic|personal care|consumer goods|fast-moving|luxury|household|furniture|\btoy|sporting goods|jewel|watch|bicycle", "mfg", "consumer"),
     (r"homebuild|residential", "constr", "building"),
@@ -485,7 +486,8 @@ for rec in reg.recs:
 for country, sectors in out.items():
     for s, lst in sectors.items():
         lst.sort(key=lambda x: -x[1])
-        del lst[MAX_PER_SECTOR:]
+        per_sub = defaultdict(int)  # cap each sub-industry, not the whole sector
+        lst[:] = [x for x in lst if (per_sub.__setitem__(x[2], per_sub[x[2]] + 1) or per_sub[x[2]]) <= MAX_PER_SUB]
         counts[country] += len(lst)
 
 with open(os.path.join(ROOT, "companies.js"), "w") as f:
